@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
 import CubeView from '@/components/cube/CubeView';
 import { ALL_FORMULAS } from '@/lib/formulas';
@@ -11,10 +11,19 @@ import type { Formula, PracticeSession } from '@/types';
 
 const ROUND_SIZE = 10;
 
-function pickRound(): Formula[] {
+export type FlashcardScope = '3x3' | '2x2' | 'all';
+
+function pickRound(scope: FlashcardScope): Formula[] {
   const isPremium = storage.getUser().isPremium;
-  const pool = ALL_FORMULAS.filter((f) => isPremium || !f.isPremium);
-  // Fisher–Yates
+  const all = ALL_FORMULAS.filter((f) => isPremium || !f.isPremium);
+  let pool: Formula[];
+  if (scope === '3x3') {
+    pool = all.filter((f) => f.category === 'OLL' || f.category === 'PLL');
+  } else if (scope === '2x2') {
+    pool = all.filter((f) => f.category === 'OLL-2x2' || f.category === 'PBL-2x2');
+  } else {
+    pool = all;
+  }
   const arr = [...pool];
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -23,7 +32,13 @@ function pickRound(): Formula[] {
   return arr.slice(0, Math.min(ROUND_SIZE, arr.length));
 }
 
-export default function Flashcard({ onExit }: { onExit: () => void }) {
+export default function Flashcard({
+  scope = 'all',
+  onExit,
+}: {
+  scope?: FlashcardScope;
+  onExit: () => void;
+}) {
   const [round, setRound] = useState<Formula[]>([]);
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -32,11 +47,14 @@ export default function Flashcard({ onExit }: { onExit: () => void }) {
 
   useEffect(() => {
     ensureAchievementsInit();
-    setRound(pickRound());
-  }, []);
+    setRound(pickRound(scope));
+  }, [scope]);
 
   const current = round[idx];
   const progress = round.length === 0 ? 0 : (idx / round.length) * 100;
+  const isTwo = !!current && (current.category === 'OLL-2x2' || current.category === 'PBL-2x2');
+  const puzzle: '3x3x3' | '2x2x2' = isTwo ? '2x2x2' : '3x3x3';
+  const previewViz: '3D' | 'experimental-2D-LL' = isTwo ? '3D' : 'experimental-2D-LL';
 
   function answer(success: boolean) {
     if (!current) return;
@@ -63,7 +81,7 @@ export default function Flashcard({ onExit }: { onExit: () => void }) {
     };
     storage.addSession(session);
     checkAndUnlock();
-    track('practice_complete', { total: round.length, correct, rate: correct / round.length });
+    track('practice_complete', { total: round.length, correct, rate: correct / round.length, scope });
     setDone(true);
     if (correct / round.length >= 0.7) {
       confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
@@ -75,12 +93,12 @@ export default function Flashcard({ onExit }: { onExit: () => void }) {
     setFlipped(false);
     setResults([]);
     setDone(false);
-    setRound(pickRound());
+    setRound(pickRound(scope));
   }
 
   if (done) {
     const correct = results.filter(Boolean).length;
-    const rate = correct / round.length;
+    const rate = round.length === 0 ? 0 : correct / round.length;
     const stars = rate >= 0.9 ? 3 : rate >= 0.7 ? 2 : rate >= 0.5 ? 1 : 0;
     const encourage = rate >= 0.9 ? '太棒了！你是魔方小高手 🏆'
       : rate >= 0.7 ? '不错哦，继续加油 💪'
@@ -115,21 +133,25 @@ export default function Flashcard({ onExit }: { onExit: () => void }) {
   }
 
   if (!current) {
-    return <main className="max-w-2xl mx-auto px-4 py-10 text-center text-gray-500">准备中…</main>;
+    return (
+      <main className="max-w-2xl mx-auto px-4 py-10 text-center text-gray-500">
+        准备中…如果一直看不到卡片，可能是免费公式不够，请选择「全部」或者购买 Pro。
+      </main>
+    );
   }
+
+  const scopeLabel = scope === '3x3' ? '三阶' : scope === '2x2' ? '二阶' : '全部';
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-6">
-      {/* 顶部进度 */}
       <div className="flex items-center justify-between">
         <button onClick={onExit} className="text-sm text-gray-500">← 退出</button>
-        <div className="text-sm text-gray-500">{idx + 1} / {round.length}</div>
+        <div className="text-sm text-gray-500">{scopeLabel} · {idx + 1} / {round.length}</div>
       </div>
       <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
         <div className="h-full bg-cube-yellow transition-all" style={{ width: `${progress}%` }} />
       </div>
 
-      {/* 卡片 */}
       <div className="mt-6 card min-h-[420px] flex flex-col items-center justify-center">
         <div className="text-xs text-gray-400">{current.category} #{current.number}</div>
         {!flipped ? (
@@ -138,12 +160,13 @@ export default function Flashcard({ onExit }: { onExit: () => void }) {
               <CubeView
                 alg={current.algorithm}
                 setupAlg={current.setupMoves}
-                visualization="experimental-2D-LL"
+                visualization={previewViz}
                 controlPanel="none"
+                puzzle={puzzle}
                 size={220}
               />
             </div>
-            <p className="mt-4 text-gray-500">试试回惶该公式…</p>
+            <p className="mt-4 text-gray-500">试试回想该公式…</p>
             <button onClick={() => setFlipped(true)} className="btn-secondary mt-4">👀 翻开看答案</button>
           </>
         ) : (
@@ -154,18 +177,18 @@ export default function Flashcard({ onExit }: { onExit: () => void }) {
                 setupAlg={current.setupMoves}
                 visualization="3D"
                 controlPanel="bottom-row"
+                puzzle={puzzle}
                 size={240}
               />
             </div>
             <div className="text-center mt-4">
               <div className="text-lg font-semibold">{current.name}</div>
-              <div className="alg-text mt-2 break-words">{current.algorithm}</div>
+              <div className="alg-text mt-2 break-words wca-hide-on-kid">{current.algorithm}</div>
             </div>
           </div>
         )}
       </div>
 
-      {/* 动作按钮 */}
       {flipped && (
         <div className="mt-4 grid grid-cols-2 gap-3">
           <button onClick={() => answer(false)} className="btn" style={{ background: '#FF5800', color: 'white' }}>还不熟</button>
