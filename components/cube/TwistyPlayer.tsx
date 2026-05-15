@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 
 type Visualization = '2D' | '3D' | 'PG3D' | 'experimental-2D-LL';
+type Puzzle = '3x3x3' | '2x2x2';
 
 export interface TwistyPlayerProps {
   alg?: string;
@@ -13,16 +14,11 @@ export interface TwistyPlayerProps {
   hintFacelets?: 'none' | 'floating';
   backView?: 'none' | 'side-by-side' | 'top-right';
   tempoScale?: number;
-  size?: number; // px
+  size?: number;
   className?: string;
+  puzzle?: Puzzle;
 }
 
-/**
- * cubing.js <twisty-player> 的 React 包装
- *
- * 重要：由于是 Web Component，必须在客户端使用。
- * 父组件请使用 next/dynamic(..., { ssr: false }) 加载。
- */
 export default function TwistyPlayer({
   alg = '',
   setupAlg = '',
@@ -34,6 +30,7 @@ export default function TwistyPlayer({
   tempoScale = 1,
   size = 280,
   className,
+  puzzle = '3x3x3',
 }: TwistyPlayerProps) {
   const hostRef = useRef<HTMLDivElement>(null);
 
@@ -42,14 +39,12 @@ export default function TwistyPlayer({
     let player: HTMLElement | null = null;
 
     (async () => {
-      // 注册 custom element
       await import('cubing/twisty');
       if (cancelled || !hostRef.current) return;
 
-      // 清理旧实例
       hostRef.current.innerHTML = '';
       player = document.createElement('twisty-player');
-      player.setAttribute('puzzle', '3x3x3');
+      player.setAttribute('puzzle', puzzle);
       player.setAttribute('visualization', visualization);
       player.setAttribute('background', background);
       player.setAttribute('control-panel', controlPanel);
@@ -68,7 +63,7 @@ export default function TwistyPlayer({
       cancelled = true;
       if (player && player.parentElement) player.parentElement.removeChild(player);
     };
-  }, [alg, setupAlg, visualization, background, controlPanel, hintFacelets, backView, tempoScale, size]);
+  }, [alg, setupAlg, visualization, background, controlPanel, hintFacelets, backView, tempoScale, size, puzzle]);
 
   return <div ref={hostRef} className={className} />;
 }

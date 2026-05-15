@@ -1,11 +1,12 @@
 // ============================================================================
-// 公式数据统一入口
+// 公式数据统一入口（三阶 + 二阶）
 // ============================================================================
 import type { Formula, FormulaCategory } from '@/types';
 import { OLL_FORMULAS } from './oll';
 import { PLL_FORMULAS } from './pll';
+import { TWO_FORMULAS, TWO_OLL, TWO_PBL } from './two';
 
-export const ALL_FORMULAS: Formula[] = [...OLL_FORMULAS, ...PLL_FORMULAS];
+export const ALL_FORMULAS: Formula[] = [...OLL_FORMULAS, ...PLL_FORMULAS, ...TWO_FORMULAS];
 
 export function getFormulasByCategory(category: FormulaCategory): Formula[] {
   return ALL_FORMULAS.filter((f) => f.category === category);
@@ -32,4 +33,4 @@ export function getAdjacentFormulas(id: string): { prev?: Formula; next?: Formul
   };
 }
 
-export { OLL_FORMULAS, PLL_FORMULAS };
+export { OLL_FORMULAS, PLL_FORMULAS, TWO_FORMULAS, TWO_OLL, TWO_PBL };
