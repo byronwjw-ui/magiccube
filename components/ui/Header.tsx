@@ -11,12 +11,25 @@ import { speech } from '@/lib/speech';
 const NAV = [
   { href: '/', label: '首页' },
   { href: '/tutorial', label: '入门', kid: true },
-  { href: '/learn', label: '三阶' },
   { href: '/learn-2x2', label: '二阶' },
+  { href: '/learn', label: '三阶' },
   { href: '/practice', label: '练习' },
   { href: '/dashboard', label: '我的' },
   { href: '/pricing', label: 'Pro' },
 ];
+
+/**
+ * 判断当前路径是否命中某个 nav 项。
+ * 特别处理：/learn 不应该匹配到 /learn-2x2（因为 startsWith 会误中）。
+ */
+function isActive(pathname: string, href: string): boolean {
+  if (href === '/') return pathname === '/';
+  if (href === '/learn') {
+    // 只匹配 /learn 或 /learn/xxx，但不能匹配 /learn-2x2
+    return pathname === '/learn' || pathname.startsWith('/learn/');
+  }
+  return pathname === href || pathname.startsWith(href + '/');
+}
 
 export default function Header() {
   const pathname = usePathname();
@@ -53,7 +66,7 @@ export default function Header() {
         </Link>
         <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar">
           {NAV.map((n) => {
-            const active = n.href === '/' ? pathname === '/' : pathname.startsWith(n.href);
+            const active = isActive(pathname, n.href);
             return (
               <Link
                 key={n.href}
