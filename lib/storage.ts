@@ -3,7 +3,7 @@
 //
 // 业务代码只能通过 storage.* 访问数据，不允许直接 localStorage。
 // ============================================================================
-import type { User, UserProgress, PracticeSession, Achievement } from '@/types';
+import type { User, UserProgress, PracticeSession, Achievement, TutorialProgress } from '@/types';
 
 const KEYS = {
   user: 'mc_user',
@@ -11,6 +11,7 @@ const KEYS = {
   progress: 'mc_progress',
   sessions: 'mc_sessions',
   achievements: 'mc_achievements',
+  tutorial: 'mc_tutorial',
 } as const;
 
 // ----------------------------------------------------------------------------
@@ -65,12 +66,21 @@ function createDefaultUser(): User {
     avatar: AVATAR_POOL[Math.floor(Math.random() * AVATAR_POOL.length)],
     isPremium: false,
     createdAt: Date.now(),
+    kidMode: false,
+    speechEnabled: false,
+    learningPath: null,
   };
 }
 
 export function getUser(): User {
   const cached = read<User | null>(KEYS.user, null);
-  if (cached) return cached;
+  if (cached) {
+    // 兼容旧数据：补默认字段
+    if (typeof cached.kidMode === 'undefined') cached.kidMode = false;
+    if (typeof cached.speechEnabled === 'undefined') cached.speechEnabled = false;
+    if (typeof cached.learningPath === 'undefined') cached.learningPath = null;
+    return cached;
+  }
   const u = createDefaultUser();
   write(KEYS.user, u);
   return u;
@@ -85,6 +95,21 @@ export function updateUser(patch: Partial<User>): User {
 
 export function getAvatarPool(): string[] {
   return [...AVATAR_POOL];
+}
+
+// 快捷开关
+export function toggleKidMode(): User {
+  const u = getUser();
+  return updateUser({ kidMode: !u.kidMode, speechEnabled: !u.kidMode ? true : u.speechEnabled });
+}
+
+export function toggleSpeech(): User {
+  const u = getUser();
+  return updateUser({ speechEnabled: !u.speechEnabled });
+}
+
+export function setLearningPath(path: User['learningPath']): User {
+  return updateUser({ learningPath: path });
 }
 
 // ----------------------------------------------------------------------------
@@ -154,14 +179,10 @@ export function getSessions(): PracticeSession[] {
 export function addSession(session: PracticeSession): void {
   const all = getSessions();
   all.push(session);
-  // 只保留最近 200 场，防止 localStorage 胀
   const trimmed = all.slice(-200);
   write(KEYS.sessions, trimmed);
 }
 
-/**
- * 返回最近 N 天的每日练习量（热力图用）
- */
 export function getDailyCounts(days: number): Array<{ date: string; count: number }> {
   const map = new Map<string, number>();
   const now = new Date();
@@ -177,22 +198,42 @@ export function getDailyCounts(days: number): Array<{ date: string; count: numbe
   return [...map.entries()].map(([date, count]) => ({ date, count }));
 }
 
-/**
- * 返回连续学习天数（从今天往前数）
- */
 export function getStreak(): number {
   const sessions = getSessions();
   if (sessions.length === 0) return 0;
   const daySet = new Set(sessions.map((s) => s.date));
   let streak = 0;
   const cur = new Date();
-  // 如果今天没练，从昨天开始算
   if (!daySet.has(cur.toISOString().slice(0, 10))) cur.setDate(cur.getDate() - 1);
   while (daySet.has(cur.toISOString().slice(0, 10))) {
     streak++;
     cur.setDate(cur.getDate() - 1);
   }
   return streak;
+}
+
+// ----------------------------------------------------------------------------
+// Tutorial Progress
+// ----------------------------------------------------------------------------
+export function getAllTutorialProgress(): Record<string, TutorialProgress> {
+  return read<Record<string, TutorialProgress>>(KEYS.tutorial, {});
+}
+
+export function getTutorialProgress(lessonId: string): TutorialProgress | undefined {
+  return getAllTutorialProgress()[lessonId];
+}
+
+export function completeTutorialLesson(lessonId: string, stars: number = 3): TutorialProgress {
+  const all = getAllTutorialProgress();
+  const next: TutorialProgress = {
+    lessonId,
+    completed: true,
+    completedAt: Date.now(),
+    stars: Math.max(all[lessonId]?.stars ?? 0, stars),
+  };
+  all[lessonId] = next;
+  write(KEYS.tutorial, all);
+  return next;
 }
 
 // ----------------------------------------------------------------------------
@@ -223,12 +264,15 @@ export function resetAll(): void {
   Object.values(KEYS).forEach((k) => window.localStorage.removeItem(k));
 }
 
-// 统一 namespace 导出，方便然一句 import { storage } from '@/lib/storage'
+// 统一 namespace 导出
 export const storage = {
   getAnonUid,
   getUser,
   updateUser,
   getAvatarPool,
+  toggleKidMode,
+  toggleSpeech,
+  setLearningPath,
   getAllProgress,
   getProgress,
   upsertProgress,
@@ -239,6 +283,9 @@ export const storage = {
   addSession,
   getDailyCounts,
   getStreak,
+  getAllTutorialProgress,
+  getTutorialProgress,
+  completeTutorialLesson,
   getAchievements,
   setAchievements,
   unlockAchievement,

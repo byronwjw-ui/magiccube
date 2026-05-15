@@ -2,22 +2,22 @@
 // 小魔方大师 - 核心类型定义
 // ============================================================================
 
-export type FormulaCategory = 'OLL' | 'PLL';
+export type FormulaCategory = 'OLL' | 'PLL' | 'OLL-2x2' | 'PBL-2x2';
 
 export type FormulaStatus = 'new' | 'learning' | 'mastered';
 
 export type Difficulty = 1 | 2 | 3;
 
 /**
- * 一个公式数据。OLL 57 个 + PLL 21 个 = 78 个。
+ * 一个公式数据。三阶 OLL 57 + PLL 21 + 二阶 OLL 7 + PBL 5 = 90 个。
  */
 export interface Formula {
-  /** 唯一 id，如 'oll-1', 'pll-aa' */
+  /** 唯一 id，如 'oll-1', 'pll-aa', '2oll-1', '2pbl-1' */
   id: string;
   category: FormulaCategory;
-  /** 子分类，如 'Sune', 'Dot', 'T-shape', 'G-Perm' 等，用于列表过滤 */
+  /** 子分类，如 'Sune', 'Dot', 'T-shape', 'G-Perm', 'Ortega-OLL', 'Ortega-PBL' */
   subCategory: string;
-  /** OLL 1-57，PLL 1-21（以 PLL 标准顺序） */
+  /** 编号：OLL 1-57，PLL 1-21，二阶 OLL 1-7，二阶 PBL 1-5 */
   number: number;
   /** 中文名称，默认保留社区英文名如 'Sune' */
   name: string;
@@ -32,6 +32,8 @@ export interface Formula {
   isPremium: boolean;
   /** 补充说明/记忆口诀 */
   tip?: string;
+  /** 二阶公式 puzzle 类型，默认为 3x3x3 */
+  puzzle?: '3x3x3' | '2x2x2';
 }
 
 /**
@@ -60,6 +62,26 @@ export interface User {
   avatar: string;
   isPremium: boolean;
   createdAt: number;
+  /** 小朋友模式：放大字体、隐藏 WCA 字母、默认开朗读 */
+  kidMode?: boolean;
+  /** 朗读引导语（小朋友模式默认开） */
+  speechEnabled?: boolean;
+  /** 已学/已选学习路径：tutorial=零基础教程；cfop=三阶高手；ortega=二阶 */
+  learningPath?: 'tutorial' | 'cfop' | 'ortega' | null;
+}
+
+/**
+ * 教程进度（每节课的完成情况）
+ */
+export interface TutorialProgress {
+  /** 课程 id：tutorial-1 .. tutorial-8 */
+  lessonId: string;
+  /** 是否完成 */
+  completed: boolean;
+  /** 完成时间戳 */
+  completedAt?: number;
+  /** 获得星星数 0-3 */
+  stars: number;
 }
 
 /**
@@ -101,4 +123,9 @@ export type AnalyticsEvent =
   | 'premium_modal_show'
   | 'pricing_view'
   | 'pricing_cta_click'
-  | 'b2b_contact_click';
+  | 'b2b_contact_click'
+  | 'path_select'
+  | 'kid_mode_toggle'
+  | 'tutorial_lesson_start'
+  | 'tutorial_lesson_complete'
+  | 'speech_toggle';

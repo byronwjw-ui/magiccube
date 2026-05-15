@@ -11,13 +11,17 @@ export function track(event: AnalyticsEvent, props: Props = {}): void {
     event,
     uid: typeof window !== 'undefined' ? getAnonUid() : 'ssr',
     ts: Date.now(),
-    ...props,
+    ...payload_safe(props),
   };
   // eslint-disable-next-line no-console
   console.log('[analytics]', payload);
-  // TODO: 接入真实提供商：
-  // mixpanel.track(event, payload);
-  // posthog.capture(event, payload);
+}
+
+function payload_safe(props: Props): Props {
+  // 简单清理 undefined，便于阅读
+  const out: Props = {};
+  for (const [k, v] of Object.entries(props)) if (typeof v !== 'undefined') out[k] = v;
+  return out;
 }
 
 export function identify(traits: Props = {}): void {
