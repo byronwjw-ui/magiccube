@@ -3,7 +3,7 @@
 //
 // 业务代码只能通过 storage.* 访问数据，不允许直接 localStorage。
 // ============================================================================
-import type { User, UserProgress, PracticeSession, Achievement, TutorialProgress } from '@/types';
+import type { User, UserProgress, PracticeSession, Achievement, TutorialProgress, LearningPath } from '@/types';
 
 const KEYS = {
   user: 'mc_user',
@@ -14,9 +14,6 @@ const KEYS = {
   tutorial: 'mc_tutorial',
 } as const;
 
-// ----------------------------------------------------------------------------
-// 底层 helper（SSR 安全）
-// ----------------------------------------------------------------------------
 function isBrowser(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 }
@@ -36,14 +33,21 @@ function write<T>(key: string, value: T): void {
   if (!isBrowser()) return;
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // 静默失败（隔离模式/超额）
+  } catch {}
+}
+
+function normalizeLearningPath(path: unknown): LearningPath {
+  switch (path) {
+    case 'tutorial':
+    case 'tutorial-2x2':
+    case 'cfop':
+    case 'ortega':
+      return path;
+    default:
+      return null;
   }
 }
 
-// ----------------------------------------------------------------------------
-// 匿名 UID
-// ----------------------------------------------------------------------------
 export function getAnonUid(): string {
   if (!isBrowser()) return 'ssr-anon';
   let uid = window.localStorage.getItem(KEYS.anonUid);
@@ -54,9 +58,6 @@ export function getAnonUid(): string {
   return uid;
 }
 
-// ----------------------------------------------------------------------------
-// User
-// ----------------------------------------------------------------------------
 const AVATAR_POOL = ['🦊', '🐼', '🐯', '🐰', '🐸', '🐵', '🐨', '🦁'];
 
 function createDefaultUser(): User {
@@ -75,10 +76,9 @@ function createDefaultUser(): User {
 export function getUser(): User {
   const cached = read<User | null>(KEYS.user, null);
   if (cached) {
-    // 兼容旧数据：补默认字段
     if (typeof cached.kidMode === 'undefined') cached.kidMode = false;
     if (typeof cached.speechEnabled === 'undefined') cached.speechEnabled = false;
-    if (typeof cached.learningPath === 'undefined') cached.learningPath = null;
+    cached.learningPath = normalizeLearningPath(cached.learningPath);
     return cached;
   }
   const u = createDefaultUser();
@@ -89,6 +89,7 @@ export function getUser(): User {
 export function updateUser(patch: Partial<User>): User {
   const current = getUser();
   const next = { ...current, ...patch };
+  next.learningPath = normalizeLearningPath(next.learningPath);
   write(KEYS.user, next);
   return next;
 }
@@ -97,7 +98,6 @@ export function getAvatarPool(): string[] {
   return [...AVATAR_POOL];
 }
 
-// 快捷开关
 export function toggleKidMode(): User {
   const u = getUser();
   return updateUser({ kidMode: !u.kidMode, speechEnabled: !u.kidMode ? true : u.speechEnabled });
@@ -108,13 +108,10 @@ export function toggleSpeech(): User {
   return updateUser({ speechEnabled: !u.speechEnabled });
 }
 
-export function setLearningPath(path: User['learningPath']): User {
-  return updateUser({ learningPath: path });
+export function setLearningPath(path: LearningPath): User {
+  return updateUser({ learningPath: normalizeLearningPath(path) });
 }
 
-// ----------------------------------------------------------------------------
-// Progress
-// ----------------------------------------------------------------------------
 export function getAllProgress(): Record<string, UserProgress> {
   return read<Record<string, UserProgress>>(KEYS.progress, {});
 }
@@ -150,7 +147,6 @@ export function recordPractice(formulaId: string, success: boolean): UserProgres
   const prevSuccess = Math.round(prev.successRate * prev.practiceCount);
   const nextSuccess = prevSuccess + (success ? 1 : 0);
   const nextRate = nextCount > 0 ? nextSuccess / nextCount : 0;
-  // 连续成功 >= 3 次 且 准确率 >= 0.8 → mastered
   let status: UserProgress['status'] = prev.status === 'new' ? 'learning' : prev.status;
   if (nextCount >= 3 && nextRate >= 0.8) status = 'mastered';
   return upsertProgress(formulaId, {
@@ -169,9 +165,6 @@ export function markLearning(formulaId: string): UserProgress {
   return upsertProgress(formulaId, { status: 'learning' });
 }
 
-// ----------------------------------------------------------------------------
-// Sessions (热力图 + 统计)
-// ----------------------------------------------------------------------------
 export function getSessions(): PracticeSession[] {
   return read<PracticeSession[]>(KEYS.sessions, []);
 }
@@ -212,9 +205,6 @@ export function getStreak(): number {
   return streak;
 }
 
-// ----------------------------------------------------------------------------
-// Tutorial Progress
-// ----------------------------------------------------------------------------
 export function getAllTutorialProgress(): Record<string, TutorialProgress> {
   return read<Record<string, TutorialProgress>>(KEYS.tutorial, {});
 }
@@ -236,9 +226,6 @@ export function completeTutorialLesson(lessonId: string, stars: number = 3): Tut
   return next;
 }
 
-// ----------------------------------------------------------------------------
-// Achievements
-// ----------------------------------------------------------------------------
 export function getAchievements(): Achievement[] {
   return read<Achievement[]>(KEYS.achievements, []);
 }
@@ -256,15 +243,11 @@ export function unlockAchievement(id: string): void {
   }
 }
 
-// ----------------------------------------------------------------------------
-// Reset (调试用)
-// ----------------------------------------------------------------------------
 export function resetAll(): void {
   if (!isBrowser()) return;
   Object.values(KEYS).forEach((k) => window.localStorage.removeItem(k));
 }
 
-// 统一 namespace 导出
 export const storage = {
   getAnonUid,
   getUser,
