@@ -513,7 +513,7 @@
   <div class="toast" id="toast"></div>
   <div id="modal-root"></div>
 
-  <!-- ============ App scripts ============ -->
+  <!-- ============ Core app (storage / router / cube / formulas seed) ============ -->
   <script>
     /* =========================================================================
      * Toast
@@ -778,7 +778,7 @@
     }
 
     /* =========================================================================
-     * FORMULAS
+     * FORMULAS — OLL injected here, PLL by js/pll.js
      * ========================================================================= */
     var FREE_OLL_NUMBERS = { 27:1, 26:1, 21:1, 22:1, 23:1, 24:1, 25:1, 44:1, 45:1, 33:1 };
     var FREE_PLL_CODES = { Ua:1, Ub:1, H:1, Z:1, Aa:1 };
@@ -798,51 +798,28 @@
         tip: tip || ''
       };
     }
-    function pllEntry(number, code, name, sub, alg, diff, alts, tip) {
-      return {
-        id: 'pll-' + code.toLowerCase(),
-        category: 'PLL',
-        subCategory: sub,
-        number: number,
-        name: name,
-        algorithm: alg,
-        alternativeAlgorithms: alts || [],
-        setupMoves: invertAlgorithm(alg),
-        difficulty: diff,
-        isPremium: !FREE_PLL_CODES[code],
-        tip: tip || ''
-      };
-    }
 
     var OLL_FORMULAS = [
-      // Dot
       ollEntry(1,  'Dot 1', 'Dot', "(R U2') (R2' F R F') U2' (R' F R F')", 3),
       ollEntry(2,  'Dot 2', 'Dot', "F (R U R' U') F' f (R U R' U') f'", 3),
       ollEntry(3,  'Dot 3', 'Dot', "f (R U R' U') f' U' F (R U R' U') F'", 3),
       ollEntry(4,  'Dot 4', 'Dot', "f (R U R' U') f' U F (R U R' U') F'", 3),
-      // Square
       ollEntry(5,  'Square 1', 'Square', "(r' U2 R U R' U r)", 2),
       ollEntry(6,  'Square 2', 'Square', "(r U2 R' U' R U' r')", 2),
-      // Lightning
       ollEntry(7,  'Lightning 1', 'Lightning', "(r U R' U R U2 r')", 2),
       ollEntry(8,  'Lightning 2', 'Lightning', "(r' U' R U' R' U2 r)", 2),
-      // Fish
       ollEntry(9,  'Fish (Kite) 1', 'Fish', "(R U R' U') R' F (R2 U R' U') F'", 3),
       ollEntry(10, 'Fish (Kite) 2', 'Fish', "(R U R' U) (R' F R F') (R U2 R')", 3),
-      // Lightning continued
       ollEntry(11, 'Lightning 3', 'Lightning', "r' (R2 U R' U R U2 R') U M'", 3),
       ollEntry(12, 'Lightning 4', 'Lightning', "M' (R' U' R U' R' U2 R) U' M", 3),
-      // Knight
       ollEntry(13, 'Knight 1', 'Knight', "(r U' r') (U' r U r') y' (R' U R)", 3),
       ollEntry(14, 'Knight 2', 'Knight', "(R' F R) (U R' F' R) (F U' F')", 3),
       ollEntry(15, 'Knight 3', 'Knight', "(r' U' r) (R' U' R U) (r' U r)", 3),
       ollEntry(16, 'Knight 4', 'Knight', "(r U r') (R U R' U') (r U' r')", 3),
-      // Awkward
       ollEntry(17, 'Awkward 1', 'Awkward', "(R U R' U) (R' F R F') U2 (R' F R F')", 3),
       ollEntry(18, 'Awkward 2', 'Awkward', "F (R U R' U) y' (R' U2) (R' F R F')", 3),
       ollEntry(19, 'Awkward 3', 'Awkward', "M U (R U R' U') M' (R' F R F')", 3),
       ollEntry(20, 'Double Sune', 'Awkward', "M U (R U R' U') M2 (U R U' r')", 3),
-      // OCLL
       ollEntry(21, 'Cross / H', 'OCLL', "(R U2 R' U' R U R' U' R U' R')", 1, ["F (R U R' U')3 F'"], '双 Sune 合并'),
       ollEntry(22, 'Pi',        'OCLL', "R U2' R2' U' R2 U' R2' U2' R", 1, ["f (R U R' U') f' F (R U R' U') F'"]),
       ollEntry(23, 'Headlights','OCLL', "R2' D' R U2 R' D R U2 R", 1, ["R2 D (R' U2 R) D' (R' U2 R')"]),
@@ -850,54 +827,39 @@
       ollEntry(25, 'Bowtie 反 / Diagonal', 'OCLL', "F' (r U R' U') r' F R", 1, ["x' (R U R' D) (R U' R' D') x"]),
       ollEntry(26, 'Anti-Sune', 'OCLL', "(R U2 R' U' R U' R')", 1, ["L' U' L U' L' U2 L"], '左前角朝外'),
       ollEntry(27, 'Sune',      'OCLL', "(R U R' U R U2 R')", 1, ["L' U2 L U L' U L"], '最常用 OLL'),
-      // Block
       ollEntry(28, 'Block 1', 'Block', "(r U R' U') M (U R U' R')", 2),
       ollEntry(29, 'Block 2', 'Block', "(R U R' U') (R U' R') (F' U' F) (R U R')", 3),
       ollEntry(30, 'Block 3', 'Block', "F R' F (R2 U' R' U') (R U R') F2", 3),
-      // P
       ollEntry(31, 'P-shape 1', 'P-shape', "(R' U' F) (U R U' R') F' R", 2),
       ollEntry(32, 'P-shape 2', 'P-shape', "(S R U R' U') (R' F R f')", 2),
-      // T
       ollEntry(33, 'T-shape 1', 'T-shape', "(R U R' U') (R' F R F')", 1, [], '熟悉 sexy + sledge 的组合'),
-      // C
       ollEntry(34, 'C-shape 1', 'C-shape', "(R U R' U') B' (R' F R F') B", 2),
-      // Fish continued
       ollEntry(35, 'Fish 3', 'Fish', "(R U2') (R2' F R F') (R U2' R')", 2),
-      // W
       ollEntry(36, 'W-shape 1', 'W-shape', "(R' U' R U' R' U R U) l U' R' U x", 3),
       ollEntry(37, 'Fish 4 (Mounted)', 'Fish', "F (R U' R' U') (R U R' F')", 2),
       ollEntry(38, 'W-shape 2', 'W-shape', "(R U R' U) (R U' R' U') (R' F R F')", 2),
-      // Big lightning
       ollEntry(39, 'Big Lightning 1', 'Lightning', "(L F') (L' U' L U) F U' L'", 3),
       ollEntry(40, 'Big Lightning 2', 'Lightning', "(R' F) (R U R' U') F' U R", 3),
-      // Awkward fish
       ollEntry(41, 'Awkward Fish 1', 'Awkward', "(R U R' U R U2' R') F (R U R' U') F'", 3),
       ollEntry(42, 'Awkward Fish 2', 'Awkward', "(R' U' R U' R' U2 R) F (R U R' U') F'", 3),
-      // P continued
       ollEntry(43, 'P-shape 3', 'P-shape', "f' (L' U' L U) f", 2),
       ollEntry(44, 'P-shape 4', 'P-shape', "f (R U R' U') f'", 1, [], '镜像 OLL 45'),
-      // T continued
       ollEntry(45, 'T-shape 2', 'T-shape', "F (R U R' U') F'", 1, [], '万能 OLL 之一'),
-      // L
       ollEntry(46, 'L-shape (Seein\u2019 Headlights)', 'L-shape', "R' U' (R' F R F') U R", 2),
       ollEntry(47, 'L-shape 1', 'L-shape', "F' (L' U' L U) (L' U' L U) F", 2),
       ollEntry(48, 'L-shape 2', 'L-shape', "F (R U R' U') (R U R' U') F'", 2),
       ollEntry(49, 'L-shape 3', 'L-shape', "R B' R2 F R2 B R2 F' R", 3),
       ollEntry(50, 'L-shape 4', 'L-shape', "R' F R2 B' R2' F' R2 B R'", 3),
-      // Line
       ollEntry(51, 'Line 1', 'Line', "f (R U R' U') (R U R' U') f'", 2),
       ollEntry(52, 'Line 2', 'Line', "(R U R' U) R d' R U' R' F'", 2),
-      // L continued
       ollEntry(53, 'L-shape 5', 'L-shape', "(r' U' R U' R' U R U' R' U2 r)", 3),
       ollEntry(54, 'L-shape 6', 'L-shape', "(r U R' U R U' R' U R U2' r')", 3),
-      // Line continued
       ollEntry(55, 'Line 3', 'Line', "R' F (R U R U' R2' F') R2 U' R' (U R U R')", 3),
       ollEntry(56, 'Line 4', 'Line', "(r U r') (U R U' R') (U R U' R') (r U' r')", 3),
-      // H final
       ollEntry(57, 'H (Edges Only)', 'OCLL', "(R U R' U') M' (U R U' r')", 1, ["(R U R' U R U' R') M' (U R U' r')"])
     ];
 
-    var PLL_FORMULAS = []; // injected next
+    var PLL_FORMULAS = []; // populated by js/pll.js
     var ALL_FORMULAS = [];
 
     function buildFormulaIndex() {
@@ -933,7 +895,7 @@
     }
 
     /* =========================================================================
-     * cubing.js — lazy loaded ESM (graceful fallback when offline)
+     * cubing.js — lazy ESM (graceful fallback)
      * ========================================================================= */
     var CUBING_STATE = { loaded: false, loading: false, failed: false, queue: [] };
     function loadCubing() {
@@ -952,9 +914,7 @@
           CUBING_STATE.queue.forEach(function(r){ r(ok); });
           CUBING_STATE.queue = [];
         };
-        setTimeout(function(){
-          if (CUBING_STATE.loading) window.__cubingReady(false);
-        }, 8000);
+        setTimeout(function(){ if (CUBING_STATE.loading) window.__cubingReady(false); }, 8000);
         document.head.appendChild(s);
       });
     }
@@ -964,7 +924,6 @@
       var size = opts.size || 240;
       host.innerHTML = '';
       host.style.minHeight = Math.min(size, 280) + 'px';
-
       function renderFallback() {
         var el = document.createElement('div');
         el.className = 'cube-fallback';
@@ -972,14 +931,11 @@
           '<div style="margin-top:6px">' + escapeHtml(opts.alg || '—') + '</div>';
         host.appendChild(el);
       }
-
       if (CUBING_STATE.failed) { renderFallback(); return; }
-
       var ph = document.createElement('div');
       ph.className = 'cube-fallback';
       ph.textContent = '魔方加载中…';
       host.appendChild(ph);
-
       loadCubing().then(function(ok){
         if (!ok) { host.innerHTML = ''; renderFallback(); return; }
         host.innerHTML = '';
@@ -1026,41 +982,17 @@
       var path = parseHash();
       setActiveNav(path);
       if (path === '/') { showView('view-home'); return; }
-      if (path === '/learn') { showView('view-learn'); renderLearn(); return; }
+      if (path === '/learn') { showView('view-learn'); if (window.renderLearn) renderLearn(); return; }
       if (/^\/learn\/(OLL|PLL)\/([\w-]+)$/.test(path)) {
         var m = path.match(/^\/learn\/(OLL|PLL)\/([\w-]+)$/);
-        showView('view-detail'); renderDetail(m[2]); return;
+        showView('view-detail'); if (window.renderDetail) renderDetail(m[2]); return;
       }
-      if (path === '/practice') { showView('view-practice'); renderPractice(); return; }
-      if (path === '/dashboard') { showView('view-dashboard'); renderDashboard(); return; }
-      if (path === '/pricing') { showView('view-pricing'); renderPricing(); return; }
+      if (path === '/practice') { showView('view-practice'); if (window.renderPractice) renderPractice(); return; }
+      if (path === '/dashboard') { showView('view-dashboard'); if (window.renderDashboard) renderDashboard(); return; }
+      if (path === '/pricing') { showView('view-pricing'); if (window.renderPricing) renderPricing(); return; }
       showView('view-404');
     }
     window.addEventListener('hashchange', router);
-
-    /* =========================================================================
-     * View renderers — replaced by later commits
-     * ========================================================================= */
-    function renderLearn() {
-      var list = document.getElementById('learn-list');
-      if (list) list.innerHTML = '<div class="col-span-full center t-muted py-10">公式数据加载中…</div>';
-    }
-    function renderDetail(id) {
-      var el = document.getElementById('detail-root');
-      if (el) el.innerHTML = '<div class="center py-10 t-muted">详情视图加载中…</div>';
-    }
-    function renderPractice() {
-      var el = document.getElementById('practice-root');
-      if (el) el.innerHTML = '<div class="center py-10 t-muted">练习视图加载中…</div>';
-    }
-    function renderDashboard() {
-      var el = document.getElementById('dashboard-root');
-      if (el) el.innerHTML = '<div class="center py-10 t-muted">仪表盘加载中…</div>';
-    }
-    function renderPricing() {
-      var el = document.getElementById('pricing-root');
-      if (el) el.innerHTML = '<div class="center py-10 t-muted">定价页加载中…</div>';
-    }
 
     /* =========================================================================
      * Modal helpers
@@ -1108,11 +1040,12 @@
     router();
   </script>
 
-  <!-- ============ /* PLL_DATA_PLACEHOLDER */ ============ -->
-  <!-- ============ /* LEARN_VIEW_PLACEHOLDER */ ============ -->
-  <!-- ============ /* DETAIL_VIEW_PLACEHOLDER */ ============ -->
-  <!-- ============ /* PRACTICE_VIEW_PLACEHOLDER */ ============ -->
-  <!-- ============ /* DASHBOARD_VIEW_PLACEHOLDER */ ============ -->
-  <!-- ============ /* PRICING_VIEW_PLACEHOLDER */ ============ -->
+  <!-- ============ View modules (each calls buildFormulaIndex / router as needed) ============ -->
+  <script src="js/pll.js"></script>
+  <script src="js/learn.js"></script>
+  <script src="js/detail.js"></script>
+  <script src="js/practice.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/pricing.js"></script>
 </body>
 </html>
