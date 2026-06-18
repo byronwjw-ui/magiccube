@@ -2,452 +2,1024 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <meta name="theme-color" content="#FFD500" />
   <title>小魔方大师 - 你的 AI 魔方教练</title>
   <meta name="description" content="57 个 OLL + 21 个 PLL 公式，告别纸质打印。小魔方大师是孩子们的 3x3 魔方 CFOP 学习伙伴。" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%8A%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23FFD500'/%3E%3C/svg%3E" />
 
   <style>
-    /* ===== Reset ===== */
-    *, *::before, *::after { box-sizing: border-box; }
+    /* ========= Reset ========= */
+    *,*::before,*::after { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; }
     a { color: inherit; text-decoration: none; }
     button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+    input { font: inherit; }
+    ul { list-style: none; padding: 0; margin: 0; }
 
     :root {
       --bg: #F7F8FA;
       --text: #1A1A1A;
       --muted: #6B7280;
       --card: #FFFFFF;
+      --line: #E5E7EB;
       --yellow: #FFD500;
       --blue: #0046AD;
-      --blue-dark: #002a66;
-      --green: #00B86B;
-      --line: #E5E7EB;
-      --shadow: 0 4px 16px rgba(0,0,0,0.06);
-      --shadow-pop: 0 8px 24px rgba(0,70,173,0.18);
+      --green: #009B48;
+      --red: #B71234;
+      --orange: #FF5800;
+      --shadow-card: 0 2px 8px rgba(0,0,0,0.06);
+      --shadow-pop: 0 8px 24px rgba(0,70,173,0.15);
     }
-
     html, body {
       background: var(--bg);
       color: var(--text);
       -webkit-font-smoothing: antialiased;
-      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, "Helvetica Neue", system-ui, sans-serif;
+      font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
       font-size: 16px;
-      line-height: 1.6;
-      scroll-behavior: smooth;
+      line-height: 1.5;
     }
     @media (min-width: 768px) { html, body { font-size: 18px; } }
 
-    h1, h2, h3 { margin: 0; line-height: 1.25; }
-    h1 { font-size: 2rem; font-weight: 700; }
+    h1,h2,h3 { margin: 0; line-height: 1.25; }
+    h1 { font-size: 1.875rem; font-weight: 700; }
     h2 { font-size: 1.5rem; font-weight: 700; }
-    h3 { font-size: 1.15rem; font-weight: 600; }
+    h3 { font-size: 1.25rem; font-weight: 600; }
     @media (min-width: 768px) {
-      h1 { font-size: 2.75rem; }
+      h1 { font-size: 2.25rem; }
       h2 { font-size: 1.875rem; }
-      h3 { font-size: 1.35rem; }
+      h3 { font-size: 1.5rem; }
     }
     p { margin: 0; }
 
-    /* ===== Layout ===== */
-    .container { max-width: 1024px; margin: 0 auto; padding: 0 16px; }
+    /* ========= Layout ========= */
     .min-screen { min-height: 100vh; display: flex; flex-direction: column; }
+    .container { max-width: 1024px; margin: 0 auto; padding: 0 16px; width: 100%; }
+    .container-sm { max-width: 768px; margin: 0 auto; padding: 0 16px; width: 100%; }
+    .container-xs { max-width: 640px; margin: 0 auto; padding: 0 16px; width: 100%; }
 
-    /* ===== Header ===== */
-    header.site {
-      background: #fff;
+    /* ========= Header ========= */
+    .site-header {
+      position: sticky; top: 0; z-index: 30;
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: saturate(180%) blur(12px);
+      -webkit-backdrop-filter: saturate(180%) blur(12px);
       border-bottom: 1px solid var(--line);
-      position: sticky; top: 0; z-index: 40;
     }
-    header.site .bar {
-      height: 64px; display: flex; align-items: center; justify-content: space-between;
+    .site-header .bar {
+      height: 56px; display: flex; align-items: center; justify-content: space-between;
     }
-    header.site .logo {
+    .site-header .brand {
       display: flex; align-items: center; gap: 8px;
-      font-weight: 700; font-size: 1.1rem; color: var(--blue);
+      font-weight: 700; color: var(--blue);
     }
-    header.site nav { display: flex; gap: 4px; }
-    header.site nav a {
-      padding: 8px 12px; border-radius: 12px; color: #4b5563; font-size: 0.95rem;
+    .site-header .brand .square {
+      display: inline-block; width: 24px; height: 24px; border-radius: 4px; background: var(--yellow);
     }
-    header.site nav a:hover { background: #f3f4f6; }
+    .site-header nav { display: flex; align-items: center; gap: 4px; }
+    .site-header nav a {
+      padding: 6px 12px; border-radius: 12px;
+      font-size: 0.875rem; font-weight: 500; color: #4b5563;
+      transition: background .15s ease;
+    }
+    @media (min-width: 768px) { .site-header nav a { font-size: 1rem; } }
+    .site-header nav a:hover { background: #f3f4f6; }
+    .site-header nav a.active { background: var(--yellow); color: var(--blue); }
 
-    /* ===== Hero ===== */
-    main { flex: 1; padding: 40px 0 24px; }
-    @media (min-width: 768px) { main { padding: 64px 0 24px; } }
-    .center { text-align: center; }
-    .badge {
-      display: inline-block; padding: 4px 12px; border-radius: 999px;
-      background: var(--yellow); color: var(--blue);
-      font-size: 0.85rem; font-weight: 600; margin-bottom: 16px;
-    }
-    .text-blue { color: var(--blue); }
-    .text-muted { color: var(--muted); }
-    .lead { margin-top: 16px; font-size: 1.05rem; color: var(--muted); }
-    @media (min-width: 768px) { .lead { font-size: 1.2rem; } }
-    .hide-mobile { display: none; }
-    @media (min-width: 768px) { .hide-mobile { display: inline; } }
-
-    /* ===== Buttons ===== */
+    /* ========= Buttons ========= */
     .btn {
-      display: inline-flex; align-items: center; justify-content: center;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
       border-radius: 16px; padding: 12px 24px;
-      font-weight: 600; font-size: 1rem;
-      transition: transform .12s ease, filter .15s ease, box-shadow .15s ease;
-      cursor: pointer;
+      font-weight: 600; font-size: 0.95rem;
+      transition: transform .12s ease, filter .15s ease, box-shadow .15s ease, background .15s ease;
+      cursor: pointer; text-align: center;
     }
     .btn:active { transform: scale(0.96); }
-    .btn-primary { background: var(--yellow); color: var(--blue); box-shadow: var(--shadow); }
+    .btn-primary { background: var(--yellow); color: var(--blue); box-shadow: var(--shadow-card); }
     .btn-primary:hover { filter: brightness(1.05); }
-    .btn-secondary { background: var(--blue); color: #fff; box-shadow: var(--shadow); }
+    .btn-secondary { background: var(--blue); color: #fff; box-shadow: var(--shadow-card); }
     .btn-secondary:hover { filter: brightness(1.10); }
-    .btn-ghost { background: #fff; color: var(--blue); border: 1px solid rgba(0,70,173,0.2); }
+    .btn-ghost {
+      background: #fff; color: var(--blue);
+      border: 1px solid rgba(0,70,173,0.2);
+    }
     .btn-ghost:hover { background: rgba(0,70,173,0.05); }
-    .cta-row { margin-top: 28px; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+    .btn-block { width: 100%; }
 
-    /* ===== Card ===== */
+    /* ========= Card ========= */
     .card {
       background: var(--card); border-radius: 16px;
-      padding: 16px; box-shadow: var(--shadow);
+      padding: 16px; box-shadow: var(--shadow-card);
     }
     @media (min-width: 768px) { .card { padding: 24px; } }
+    .card.hover { transition: box-shadow .15s ease, transform .15s ease; }
+    .card.hover:hover { box-shadow: var(--shadow-pop); transform: translateY(-2px); }
 
-    .card-btn {
-      display: block; width: 100%; text-align: left; cursor: pointer;
-      border: 2px solid transparent;
-      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
-    }
-    .card-btn:hover { box-shadow: var(--shadow-pop); transform: translateY(-2px); }
-    .card-btn.picked { border-color: var(--yellow); background: rgba(255,213,0,0.10); }
-
-    /* ===== Grid ===== */
-    .grid { display: grid; gap: 16px; }
+    /* ========= Grid ========= */
+    .grid { display: grid; gap: 12px; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: 1fr; }
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
     @media (min-width: 768px) {
-      .grid-2 { grid-template-columns: repeat(2, 1fr); gap: 16px; }
-      .grid-3 { grid-template-columns: repeat(3, 1fr); gap: 24px; }
+      .grid { gap: 16px; }
+      .grid-3 { grid-template-columns: repeat(3, 1fr); }
+      .grid-4 { grid-template-columns: repeat(3, 1fr); }
+      .grid-md-4 { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (min-width: 1024px) {
+      .grid-4 { grid-template-columns: repeat(4, 1fr); }
     }
 
-    /* ===== Sections spacing ===== */
-    section + section { margin-top: 64px; }
-    .scroll-anchor { scroll-margin-top: 80px; }
-
-    /* ===== Path cards ===== */
-    .path-head { text-align: center; font-size: 0.9rem; font-weight: 600; color: var(--blue); margin-bottom: 12px; }
-    .path-head.muted { color: var(--muted); }
-    .path-row { display: flex; align-items: center; gap: 12px; }
-    .path-emoji { font-size: 2.5rem; line-height: 1; }
-    .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
-    .pill-green { background: var(--green); color: #fff; }
-    .pill-blue { background: var(--blue); color: #fff; }
+    /* ========= Pills ========= */
+    .pill {
+      display: inline-flex; align-items: center;
+      padding: 2px 10px; border-radius: 999px;
+      font-size: 0.72rem; font-weight: 600;
+    }
     .pill-yellow { background: var(--yellow); color: var(--blue); }
-    .card-btn h3 { margin-top: 8px; }
-    .card-btn .desc { margin-top: 4px; color: var(--muted); font-size: 0.9rem; }
+    .pill-blue { background: var(--blue); color: #fff; }
+    .pill-green { background: var(--green); color: #fff; }
+    .pill-gray { background: #e5e7eb; color: #4b5563; }
 
-    /* ===== Features ===== */
-    .feature { text-align: center; }
-    .feature .emoji { font-size: 2.25rem; }
-    .feature h3 { margin-top: 8px; }
-    .feature p { margin-top: 8px; color: var(--muted); }
+    /* ========= Status badge ========= */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 2px 8px; border-radius: 999px;
+      font-size: 0.7rem; font-weight: 600;
+    }
+    .badge-new { background: #e5e7eb; color: #4b5563; }
+    .badge-learning { background: var(--yellow); color: var(--blue); }
+    .badge-mastered { background: var(--green); color: #fff; }
 
-    /* ===== Formula cards ===== */
-    .alg-card .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .alg {
-      margin-top: 12px; width: 100%; text-align: left;
+    /* ========= Inputs ========= */
+    .input {
+      width: 100%; padding: 12px 16px; border-radius: 16px;
+      border: 1px solid var(--line); background: #fff;
+      transition: border-color .15s ease;
+    }
+    .input:focus { outline: none; border-color: var(--blue); }
+
+    /* ========= Alg text ========= */
+    .alg-text {
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 1.05rem; background: #F3F4F6; border-radius: 12px;
-      padding: 12px 16px; transition: background .15s ease;
-      word-break: break-all;
+      letter-spacing: 0.02em;
+      font-size: 1.1rem;
     }
-    @media (min-width: 768px) { .alg { font-size: 1.2rem; } }
-    .alg:hover { background: #E5E7EB; }
-    .alg-card .note { margin-top: 8px; font-size: 0.85rem; color: var(--muted); }
+    @media (min-width: 768px) { .alg-text { font-size: 1.4rem; } }
 
-    /* ===== Pricing strip ===== */
-    .pricing-strip {
-      display: flex; flex-direction: column; align-items: stretch; gap: 12px;
-    }
-    @media (min-width: 768px) {
-      .pricing-strip { flex-direction: row; align-items: center; justify-content: space-between; }
-    }
-    .pricing-strip .text p { margin-top: 4px; color: var(--muted); }
-
-    /* ===== Footer ===== */
-    footer.site {
-      margin-top: 64px; padding: 32px 0; text-align: center;
-      font-size: 0.85rem; color: var(--muted);
+    /* ========= Hero badge ========= */
+    .hero-badge {
+      display: inline-block; padding: 4px 12px;
+      border-radius: 999px; background: var(--yellow); color: var(--blue);
+      font-size: 0.875rem; font-weight: 600; margin-bottom: 16px;
     }
 
-    /* ===== Floating cube ===== */
-    @keyframes float {
-      0%,100% { transform: translateY(0) rotate(-8deg); }
-      50% { transform: translateY(-6px) rotate(8deg); }
-    }
-    .cube-emoji { display: inline-block; animation: float 3.5s ease-in-out infinite; }
+    /* ========= Color helpers ========= */
+    .t-blue { color: var(--blue); }
+    .t-muted { color: var(--muted); }
+    .t-green { color: var(--green); }
+    .center { text-align: center; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .break-words { word-break: break-word; }
 
-    /* ===== Toast ===== */
+    /* ========= Spacing helpers ========= */
+    .mt-1{margin-top:4px}.mt-2{margin-top:8px}.mt-3{margin-top:12px}.mt-4{margin-top:16px}
+    .mt-6{margin-top:24px}.mt-8{margin-top:32px}.mt-10{margin-top:40px}.mt-16{margin-top:64px}
+    .mb-2{margin-bottom:8px}.mb-4{margin-bottom:16px}
+    .py-6 { padding-top: 24px; padding-bottom: 24px; }
+    .py-8 { padding-top: 32px; padding-bottom: 32px; }
+    .py-10 { padding-top: 40px; padding-bottom: 40px; }
+    .px-4 { padding-left: 16px; padding-right: 16px; }
+
+    /* ========= Cube view container ========= */
+    .cube-host {
+      display: flex; align-items: center; justify-content: center;
+      background: #f3f4f6; border-radius: 12px; overflow: hidden;
+      min-height: 110px;
+    }
+    .cube-host.lg { min-height: 280px; }
+    .cube-fallback {
+      padding: 12px; text-align: center; color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9rem; word-break: break-word;
+    }
+    twisty-player { max-width: 100%; }
+
+    /* ========= Formula list card ========= */
+    .formula-card {
+      position: relative;
+      display: block;
+    }
+    .formula-card .corner {
+      position: absolute; top: 8px; right: 8px;
+      display: flex; align-items: center; gap: 4px;
+      z-index: 2;
+    }
+
+    /* ========= Tabs ========= */
+    .tabs {
+      display: inline-flex; background: #fff; border-radius: 16px;
+      padding: 4px; box-shadow: var(--shadow-card);
+    }
+    .tabs button {
+      padding: 8px 20px; border-radius: 12px;
+      font-size: 0.95rem; font-weight: 600; color: #6b7280;
+      transition: background .15s ease, color .15s ease;
+    }
+    .tabs button.active { background: var(--yellow); color: var(--blue); }
+
+    /* ========= Sub category chips ========= */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      padding: 4px 12px; border-radius: 999px;
+      font-size: 0.85rem; background: #fff; color: #374151;
+      border: 1px solid var(--line);
+      transition: all .15s ease;
+    }
+    .chip:hover { border-color: var(--blue); }
+    .chip.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+    /* ========= Modal ========= */
+    .modal-mask {
+      position: fixed; inset: 0; z-index: 50;
+      background: rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .modal {
+      background: #fff; border-radius: 24px;
+      max-width: 440px; width: 100%;
+      padding: 24px;
+      box-shadow: var(--shadow-pop);
+      animation: pop .2s ease-out;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.95); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    /* ========= Toast ========= */
     .toast {
       position: fixed; left: 50%; bottom: 32px;
       transform: translateX(-50%) translateY(140%);
       background: #1A1A1A; color: #fff;
-      padding: 12px 20px; border-radius: 999px;
+      padding: 10px 18px; border-radius: 999px;
       box-shadow: 0 8px 24px rgba(0,0,0,.25);
-      transition: transform .35s cubic-bezier(.2,.8,.2,1);
+      transition: transform .3s cubic-bezier(.2,.8,.2,1);
       z-index: 9999; font-weight: 600;
-      max-width: 90vw; text-align: center; font-size: 0.95rem;
+      max-width: 90vw; text-align: center; font-size: 0.9rem;
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
 
-    /* ===== Section titles ===== */
-    .section-title { text-align: center; }
-    .section-sub { text-align: center; margin-top: 8px; color: var(--muted); }
+    /* ========= Heatmap ========= */
+    .heatmap {
+      display: grid; grid-auto-flow: column;
+      grid-template-rows: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .heatmap .cell {
+      width: 14px; height: 14px; border-radius: 3px;
+      background: #f3f4f6;
+    }
+    .heatmap .cell.l0 { background: #f3f4f6; }
+    .heatmap .cell.l1 { background: rgba(255,213,0,0.4); }
+    .heatmap .cell.l2 { background: rgba(255,213,0,0.7); }
+    .heatmap .cell.l3 { background: #FFD500; }
+    .heatmap .cell.l4 { background: #0046AD; }
+    .heatmap-legend {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.75rem; color: var(--muted); margin-top: 10px;
+    }
+    .heatmap-legend .swatch { width: 12px; height: 12px; border-radius: 3px; }
+
+    /* ========= Progress ring ========= */
+    .ring-wrap { position: relative; display: inline-block; }
+    .ring-wrap .ring-text {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+    .ring-wrap .ring-text .val { font-size: 1.4rem; font-weight: 700; color: var(--blue); }
+    .ring-wrap .ring-text .lbl { font-size: 0.75rem; color: var(--muted); }
+
+    /* ========= Flashcard ========= */
+    .progress-bar {
+      height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden;
+    }
+    .progress-bar > div {
+      height: 100%; background: var(--yellow);
+      transition: width .3s ease;
+    }
+    @keyframes flipIn {
+      0% { transform: rotateY(90deg); opacity: 0; }
+      100% { transform: rotateY(0); opacity: 1; }
+    }
+    .flip-in { animation: flipIn .4s ease-out; }
+
+    /* ========= Avatar picker ========= */
+    .avatar-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+      margin-top: 16px;
+    }
+    .avatar-grid button {
+      aspect-ratio: 1 / 1; font-size: 2rem; border-radius: 16px;
+      background: #f3f4f6;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s ease, box-shadow .15s ease;
+    }
+    .avatar-grid button.active {
+      background: var(--yellow);
+      box-shadow: 0 0 0 2px var(--blue);
+    }
+
+    /* ========= Achievement ========= */
+    .ach-card {
+      border-radius: 16px; padding: 12px; text-align: center;
+      background: #f3f4f6; opacity: 0.6;
+    }
+    .ach-card.unlocked {
+      background: rgba(255,213,0,0.4); opacity: 1;
+    }
+    .ach-card .emoji { font-size: 1.875rem; }
+
+    /* ========= Footer ========= */
+    .site-footer {
+      margin-top: 64px; padding: 32px 0;
+      text-align: center; font-size: 0.85rem; color: var(--muted);
+    }
+
+    /* ========= Hide / show on navigation ========= */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ========= Misc ========= */
+    .divide-y > * + * { border-top: 1px solid var(--line); }
+    .hidden { display: none !important; }
+    .flex { display: flex; }
+    .flex-1 { flex: 1; }
+    .items-center { align-items: center; }
+    .items-start { align-items: flex-start; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .gap-4 { gap: 16px; }
+    .text-xs { font-size: 0.75rem; }
+    .text-sm { font-size: 0.875rem; }
+    .text-lg { font-size: 1.1rem; }
+    .text-xl { font-size: 1.25rem; }
+    .text-2xl { font-size: 1.5rem; }
+    .text-3xl { font-size: 1.875rem; }
+    .text-5xl { font-size: 3rem; }
+    .font-bold { font-weight: 700; }
+    .font-semibold { font-weight: 600; }
+    .underline { text-decoration: underline; }
+    .relative { position: relative; }
+    .w-full { width: 100%; }
+    .block { display: block; }
+    .inline-block { display: inline-block; }
+    .rounded-full { border-radius: 999px; }
+    .rounded-xl { border-radius: 12px; }
+    .rounded-2xl { border-radius: 16px; }
+    .min-h-110 { min-height: 110px; }
+    .overflow-x-auto { overflow-x: auto; }
+    .min-h-screen { min-height: 100vh; }
+    .col-span-full { grid-column: 1 / -1; }
   </style>
 </head>
 <body>
   <div class="min-screen">
-    <header class="site">
+    <!-- ============ Header ============ -->
+    <header class="site-header">
       <div class="container bar">
-        <a class="logo" href="#top">
-          <span class="cube-emoji" style="font-size:1.5rem">🧊</span>
+        <a href="#/" class="brand" data-nav>
+          <span class="square"></span>
           <span>小魔方大师</span>
         </a>
-        <nav>
-          <a href="#path">学习</a>
-          <a href="#features">特色</a>
-          <a href="#formulas">公式</a>
-          <a href="#pricing">Pro</a>
+        <nav id="nav">
+          <a href="#/" data-nav data-match="/">首页</a>
+          <a href="#/learn" data-nav data-match="/learn">学习</a>
+          <a href="#/practice" data-nav data-match="/practice">练习</a>
+          <a href="#/dashboard" data-nav data-match="/dashboard">我的</a>
+          <a href="#/pricing" data-nav data-match="/pricing">Pro</a>
         </nav>
       </div>
     </header>
 
-    <main id="top">
-      <div class="container">
-        <!-- Hero -->
-        <section class="center">
-          <div class="badge">🧊 v1 MVP · 6 岁也能学</div>
-          <h1>
-            小魔方大师 —
-            <span class="text-blue">你的 AI 魔方教练</span>
-          </h1>
-          <p class="lead">
-            从「拧不开」到「能还原」，再到「拼速度」。
-            <br class="hide-mobile" />
-            零基础教程 + 二阶 + 三阶公式库，一站搞定。
-          </p>
-          <div class="cta-row">
-            <a href="#path" class="btn btn-primary">立即开始 →</a>
-            <a href="#features" class="btn btn-ghost">看看特色</a>
-          </div>
-        </section>
+    <!-- ============ Views ============ -->
+    <main id="app" class="flex-1">
+      <!-- 首页 -->
+      <section id="view-home" class="view">
+        <div class="container py-10">
+          <section class="center">
+            <div class="hero-badge">🧊 v1 MVP · 面向 9-15 岁孩子</div>
+            <h1 style="font-size:2.25rem;line-height:1.2">
+              小魔方大师 — <span class="t-blue">你的 AI 魔方教练</span>
+            </h1>
+            <p class="mt-4 text-lg t-muted">
+              57 个 OLL + 21 个 PLL 公式，告别纸质打印。<br />
+              在浏览器里看动画、练闪卡、记进度。
+            </p>
+            <div class="mt-8 flex gap-3 justify-center" style="flex-wrap:wrap">
+              <a href="#/learn" data-nav class="btn btn-primary text-lg">🚀 开始免费学习</a>
+              <a href="#/pricing" data-nav class="btn btn-ghost text-lg">查看 Pro 功能</a>
+            </div>
+          </section>
 
-        <!-- 分流 -->
-        <section id="path" class="scroll-anchor">
-          <h2 class="section-title">你是？</h2>
-          <p class="section-sub">选一条最适合你的路径，随时可以切换。</p>
+          <section class="mt-16 grid grid-3">
+            <div class="card center">
+              <div class="text-5xl">📚</div>
+              <h3 class="mt-2">系统化公式库</h3>
+              <p class="mt-2 t-muted">57 OLL + 21 PLL 全收录，按图形分类，一眼看懂。</p>
+            </div>
+            <div class="card center">
+              <div class="text-5xl">🎯</div>
+              <h3 class="mt-2">智能练习跟踪</h3>
+              <p class="mt-2 t-muted">闪卡、计时挑战、弱项重点推荐，练难点不重复。</p>
+            </div>
+            <div class="card center">
+              <div class="text-5xl">🏆</div>
+              <h3 class="mt-2">闯关式成就</h3>
+              <p class="mt-2 t-muted">连续学习、掌握里程碑、徽章增加坚持习惯。</p>
+            </div>
+          </section>
 
-          <div style="margin-top:24px">
-            <div class="path-head">👶 我是新手，从哪里开始？</div>
-            <div class="grid grid-2">
-              <button class="card card-btn" data-path="tutorial-2x2">
-                <div class="path-row">
-                  <div class="path-emoji">🧊</div>
-                  <span class="pill pill-green">推荐 · 更简单</span>
-                </div>
-                <h3>从二阶入门</h3>
-                <p class="desc">8 个角块，4 节课学会还原。适合 6 岁以上，拼 5-15 分钟能还原一次。</p>
-              </button>
-              <button class="card card-btn" data-path="tutorial">
-                <div class="path-row">
-                  <div class="path-emoji">🧩</div>
-                  <span class="pill pill-blue">经典 · 8 节课</span>
-                </div>
-                <h3>从三阶入门</h3>
-                <p class="desc">26 个块，层先法 8 节课学会还原。难点多一些，学会后用途广。</p>
-              </button>
-            </div>
-          </div>
-
-          <div style="margin-top:32px">
-            <div class="path-head muted">🧠 已经会还原？</div>
-            <div class="grid grid-2">
-              <button class="card card-btn" data-path="ortega">
-                <div class="path-row">
-                  <div class="path-emoji" style="font-size:2rem">🧊</div>
-                  <div>
-                    <h3>二阶 Ortega 公式库</h3>
-                    <p class="desc">7 个 OLL + 5 个 PBL，刷二阶速度。</p>
-                  </div>
-                </div>
-              </button>
-              <button class="card card-btn" data-path="cfop">
-                <div class="path-row">
-                  <div class="path-emoji" style="font-size:2rem">🏆</div>
-                  <div>
-                    <h3>三阶 CFOP 公式库</h3>
-                    <p class="desc">57 个 OLL + 21 个 PLL，刷三阶速度。</p>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- 卖点 -->
-        <section id="features" class="scroll-anchor">
-          <div class="grid grid-3">
-            <div class="card feature">
-              <div class="emoji">👶</div>
-              <h3>6 岁也能开始</h3>
-              <p>层先法 8 节课，箭头+字母并排，可朗读引导。</p>
-            </div>
-            <div class="card feature">
-              <div class="emoji">🧊</div>
-              <h3>二阶 + 三阶</h3>
-              <p>二阶 Ortega 12 公式，三阶 57 OLL + 21 PLL 全收录。</p>
-            </div>
-            <div class="card feature">
-              <div class="emoji">🏆</div>
-              <h3>记进度有成就</h3>
-              <p>热力图、连续天数、徽章，孩子越练越上瘾。</p>
-            </div>
-          </div>
-        </section>
-
-        <!-- 公式速览 -->
-        <section id="formulas" class="scroll-anchor">
-          <h2 class="section-title">📚 公式速览</h2>
-          <p class="section-sub">点击公式即可复制，到魔方上试试看。</p>
-          <div class="grid grid-2" style="margin-top:24px">
-            <div class="card alg-card">
-              <div class="head"><h3>🟡 Sune (OLL 27)</h3><span class="pill pill-yellow">OLL</span></div>
-              <button class="alg">R U R' U R U2 R'</button>
-              <p class="note">顶层只剩一个角块翻好，最常见 OLL 之一。</p>
-            </div>
-            <div class="card alg-card">
-              <div class="head"><h3>🔵 T-Perm (PLL)</h3><span class="pill pill-blue">PLL</span></div>
-              <button class="alg">R U R' U' R' F R2 U' R' U' R U R' F'</button>
-              <p class="note">两组邻角 + 两组邻棱互换，新手必学 PLL。</p>
-            </div>
-            <div class="card alg-card">
-              <div class="head"><h3>🟢 Anti-Sune (OLL 26)</h3><span class="pill pill-yellow">OLL</span></div>
-              <button class="alg">R U2 R' U' R U' R'</button>
-              <p class="note">Sune 的镜像版本，方向相反。</p>
-            </div>
-            <div class="card alg-card">
-              <div class="head"><h3>🔴 U-Perm (PLL)</h3><span class="pill pill-blue">PLL</span></div>
-              <button class="alg">R U' R U R U R U' R' U' R2</button>
-              <p class="note">三棱循环，PLL 入门首选。</p>
-            </div>
-          </div>
-        </section>
-
-        <!-- 定价入口 -->
-        <section id="pricing" class="scroll-anchor">
-          <div class="card pricing-strip">
-            <div class="text">
+          <section class="mt-16 card flex items-center justify-between gap-4" style="flex-wrap:wrap">
+            <div>
               <h3>⏳ Pro 版即将上线</h3>
-              <p>解锁全部公式、计时挑战、弱项 AI 推荐。</p>
+              <p class="t-muted mt-1">解锁全部公式、计时挑战、弱项 AI 推荐。</p>
             </div>
-            <button class="btn btn-secondary" id="pro-btn">了解详情</button>
-          </div>
-        </section>
-      </div>
+            <a href="#/pricing" data-nav class="btn btn-secondary">了解详情</a>
+          </section>
 
-      <footer class="site">
-        © <span id="year"></span> 小魔方大师 · 面向少年与魔方机构
-      </footer>
+          <footer class="site-footer">
+            © <span id="year"></span> 小魔方大师 · 面向少年与魔方机构
+          </footer>
+        </div>
+      </section>
+
+      <!-- 学习 / 公式库 -->
+      <section id="view-learn" class="view">
+        <div class="container py-6">
+          <h1>公式库</h1>
+          <p class="t-muted mt-1">点击公式查看动画详情。锁号 🔒 = Pro 专享。</p>
+
+          <div class="mt-4 tabs" id="learn-tabs">
+            <button data-cat="OLL" class="active">OLL · 57 个</button>
+            <button data-cat="PLL">PLL · 21 个</button>
+          </div>
+
+          <div class="mt-4 chips" id="learn-subs"></div>
+
+          <input id="learn-search" class="input mt-4" placeholder="搜索编号或名称，如 27、Sune、Ua…" />
+
+          <div class="mt-6 grid grid-4" id="learn-list"></div>
+        </div>
+      </section>
+
+      <!-- 公式详情 -->
+      <section id="view-detail" class="view">
+        <div class="container-sm py-6" id="detail-root"></div>
+      </section>
+
+      <!-- 练习 -->
+      <section id="view-practice" class="view">
+        <div class="container py-6" id="practice-root"></div>
+      </section>
+
+      <!-- 我的 -->
+      <section id="view-dashboard" class="view">
+        <div class="container py-6" id="dashboard-root"></div>
+      </section>
+
+      <!-- Pro 定价 -->
+      <section id="view-pricing" class="view">
+        <div class="container py-8" id="pricing-root"></div>
+      </section>
+
+      <!-- 404 -->
+      <section id="view-404" class="view">
+        <div class="container py-10 center min-h-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <div class="text-5xl">🧊</div>
+          <h1 class="mt-4">页面走失了</h1>
+          <p class="t-muted mt-2">这个位置还没有东西。</p>
+          <a href="#/" data-nav class="btn btn-primary mt-6">回到首页</a>
+        </div>
+      </section>
     </main>
   </div>
 
-  <div class="toast" id="toast">已复制</div>
+  <div class="toast" id="toast"></div>
+  <div id="modal-root"></div>
 
+  <!-- ============ App scripts ============ -->
   <script>
-    (function () {
-      // 年份
-      document.getElementById('year').textContent = new Date().getFullYear();
+    /* =========================================================================
+     * Toast
+     * ========================================================================= */
+    var __toastEl = document.getElementById('toast');
+    var __toastTimer;
+    function toast(msg) {
+      __toastEl.textContent = msg;
+      __toastEl.classList.add('show');
+      clearTimeout(__toastTimer);
+      __toastTimer = setTimeout(function(){ __toastEl.classList.remove('show'); }, 1800);
+    }
 
-      // Toast
-      var toastEl = document.getElementById('toast');
-      var toastTimer;
-      function toast(msg) {
-        toastEl.textContent = msg;
-        toastEl.classList.add('show');
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 1800);
-      }
-
-      // 路径选择（持久化到 localStorage，file:// 下也尝试）
-      var STORAGE_KEY = 'mc_learning_path';
-      var PATH_LABEL = {
-        'tutorial-2x2': '二阶入门教程',
-        'tutorial': '三阶入门教程',
-        'ortega': '二阶 Ortega 公式库',
-        'cfop': '三阶 CFOP 公式库'
-      };
-      function safeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-      function safeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-
-      function applyPicked(path) {
-        var btns = document.querySelectorAll('.card-btn');
-        for (var i = 0; i < btns.length; i++) {
-          if (btns[i].getAttribute('data-path') === path) btns[i].classList.add('picked');
-          else btns[i].classList.remove('picked');
-        }
-      }
-
-      var saved = safeGet(STORAGE_KEY);
-      if (saved) applyPicked(saved);
-
-      var cardBtns = document.querySelectorAll('.card-btn');
-      for (var i = 0; i < cardBtns.length; i++) {
-        cardBtns[i].addEventListener('click', function () {
-          var path = this.getAttribute('data-path');
-          safeSet(STORAGE_KEY, path);
-          applyPicked(path);
-          toast('已选择：' + (PATH_LABEL[path] || path) + ' · 完整版即将上线');
-        });
-      }
-
-      // 公式点击复制（兼容 file:// 和 http://）
-      function copyText(text) {
-        // 优先用 navigator.clipboard（https / localhost 才可用）
-        if (navigator.clipboard && window.isSecureContext) {
-          return navigator.clipboard.writeText(text).then(function () { return true; }).catch(function () { return fallback(text); });
-        }
-        return Promise.resolve(fallback(text));
-      }
-      function fallback(text) {
-        try {
-          var ta = document.createElement('textarea');
-          ta.value = text;
-          ta.style.position = 'fixed';
-          ta.style.left = '-9999px';
-          ta.setAttribute('readonly', '');
-          document.body.appendChild(ta);
-          ta.select();
-          ta.setSelectionRange(0, text.length);
-          var ok = document.execCommand('copy');
-          document.body.removeChild(ta);
-          return ok;
-        } catch (e) { return false; }
-      }
-      var algs = document.querySelectorAll('.alg');
-      for (var j = 0; j < algs.length; j++) {
-        algs[j].addEventListener('click', function () {
-          var text = this.textContent.trim();
-          var p = copyText(text);
-          Promise.resolve(p).then(function (ok) {
-            toast(ok ? ('已复制：' + text) : '复制失败，请手动选择');
-          });
-        });
-      }
-
-      // Pro 按钮
-      document.getElementById('pro-btn').addEventListener('click', function () {
-        toast('Pro 版即将上线，敬请期待 🚀');
+    /* =========================================================================
+     * Utils
+     * ========================================================================= */
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function(c){
+        return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
       });
-    })();
+    }
+    function invertAlgorithm(alg) {
+      return String(alg || '').trim().split(/\s+/).filter(Boolean).reverse().map(function(m){
+        if (m.endsWith("'")) return m.slice(0, -1);
+        if (m.endsWith('2')) return m;
+        return m + "'";
+      }).join(' ');
+    }
+    function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text).then(function(){ return true; }).catch(function(){ return fallbackCopy(text); });
+      }
+      return Promise.resolve(fallbackCopy(text));
+    }
+    function fallbackCopy(text) {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed'; ta.style.left = '-9999px';
+        ta.setAttribute('readonly','');
+        document.body.appendChild(ta);
+        ta.select(); ta.setSelectionRange(0, text.length);
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      } catch (e) { return false; }
+    }
+    function formatRelativeTime(ts) {
+      if (!ts) return '从未练习';
+      var diff = Date.now() - ts;
+      var min = Math.floor(diff / 60000);
+      if (min < 1) return '刚刚';
+      if (min < 60) return min + ' 分钟前';
+      var hr = Math.floor(min / 60);
+      if (hr < 24) return hr + ' 小时前';
+      var day = Math.floor(hr / 24);
+      if (day < 30) return day + ' 天前';
+      return new Date(ts).toLocaleDateString('zh-CN');
+    }
+    function uuid() {
+      if (crypto && crypto.randomUUID) return crypto.randomUUID();
+      return 'anon-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+    }
+    function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+    /* =========================================================================
+     * Storage (localStorage)
+     * ========================================================================= */
+    var KEYS = {
+      user: 'mc_user',
+      anonUid: 'mc_anon_uid',
+      progress: 'mc_progress',
+      sessions: 'mc_sessions',
+      achievements: 'mc_achievements'
+    };
+    function _read(k, fb) {
+      try {
+        var raw = localStorage.getItem(k);
+        if (raw === null) return fb;
+        return JSON.parse(raw);
+      } catch(e) { return fb; }
+    }
+    function _write(k, v) {
+      try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
+    }
+    var AVATAR_POOL = ['🦊','🐼','🐯','🐰','🐸','🐵','🐨','🦁'];
+    var Storage = {
+      getAnonUid: function() {
+        var uid;
+        try { uid = localStorage.getItem(KEYS.anonUid); } catch(e) {}
+        if (!uid) {
+          uid = uuid();
+          try { localStorage.setItem(KEYS.anonUid, uid); } catch(e) {}
+        }
+        return uid;
+      },
+      getUser: function() {
+        var u = _read(KEYS.user, null);
+        if (u) return u;
+        var avatar = AVATAR_POOL[Math.floor(Math.random() * AVATAR_POOL.length)];
+        u = { id: Storage.getAnonUid(), nickname: '小魔方手', avatar: avatar, isPremium: false, createdAt: Date.now() };
+        _write(KEYS.user, u);
+        return u;
+      },
+      updateUser: function(patch) {
+        var u = Storage.getUser();
+        var next = Object.assign({}, u, patch);
+        _write(KEYS.user, next);
+        return next;
+      },
+      getAvatarPool: function(){ return AVATAR_POOL.slice(); },
+      getAllProgress: function(){ return _read(KEYS.progress, {}); },
+      getProgress: function(fid){ return Storage.getAllProgress()[fid]; },
+      upsertProgress: function(fid, patch) {
+        var all = Storage.getAllProgress();
+        var prev = all[fid] || { formulaId: fid, status: 'new', practiceCount: 0, lastPracticedAt: 0, successRate: 0 };
+        var next = Object.assign({}, prev, patch, { formulaId: fid });
+        all[fid] = next;
+        _write(KEYS.progress, all);
+        return next;
+      },
+      recordPractice: function(fid, success) {
+        var prev = Storage.getProgress(fid) || { formulaId: fid, status: 'new', practiceCount: 0, lastPracticedAt: 0, successRate: 0 };
+        var nextCount = prev.practiceCount + 1;
+        var prevSucc = Math.round(prev.successRate * prev.practiceCount);
+        var nextSucc = prevSucc + (success ? 1 : 0);
+        var rate = nextCount > 0 ? nextSucc / nextCount : 0;
+        var status = prev.status === 'new' ? 'learning' : prev.status;
+        if (nextCount >= 3 && rate >= 0.8) status = 'mastered';
+        return Storage.upsertProgress(fid, {
+          practiceCount: nextCount,
+          lastPracticedAt: Date.now(),
+          successRate: rate,
+          status: status
+        });
+      },
+      markMastered: function(fid){ return Storage.upsertProgress(fid, { status:'mastered', lastPracticedAt: Date.now() }); },
+      markLearning: function(fid){ return Storage.upsertProgress(fid, { status:'learning' }); },
+      getSessions: function(){ return _read(KEYS.sessions, []); },
+      addSession: function(s) {
+        var all = Storage.getSessions();
+        all.push(s);
+        _write(KEYS.sessions, all.slice(-200));
+      },
+      getDailyCounts: function(days) {
+        var map = {};
+        var now = new Date();
+        var order = [];
+        for (var i = days - 1; i >= 0; i--) {
+          var d = new Date(now); d.setDate(now.getDate() - i);
+          var key = d.toISOString().slice(0,10);
+          map[key] = 0; order.push(key);
+        }
+        var sess = Storage.getSessions();
+        for (var j = 0; j < sess.length; j++) {
+          if (map.hasOwnProperty(sess[j].date)) map[sess[j].date] += sess[j].total;
+        }
+        return order.map(function(k){ return { date: k, count: map[k] }; });
+      },
+      getStreak: function() {
+        var sessions = Storage.getSessions();
+        if (sessions.length === 0) return 0;
+        var set = {};
+        for (var i = 0; i < sessions.length; i++) set[sessions[i].date] = true;
+        var streak = 0;
+        var cur = new Date();
+        if (!set[cur.toISOString().slice(0,10)]) cur.setDate(cur.getDate() - 1);
+        while (set[cur.toISOString().slice(0,10)]) {
+          streak++;
+          cur.setDate(cur.getDate() - 1);
+        }
+        return streak;
+      },
+      getAchievements: function(){ return _read(KEYS.achievements, []); },
+      setAchievements: function(list){ _write(KEYS.achievements, list); },
+      unlockAchievement: function(id) {
+        var all = Storage.getAchievements();
+        var idx = -1;
+        for (var i = 0; i < all.length; i++) if (all[i].id === id) { idx = i; break; }
+        if (idx >= 0 && !all[idx].unlocked) {
+          all[idx] = Object.assign({}, all[idx], { unlocked: true, unlockedAt: Date.now() });
+          _write(KEYS.achievements, all);
+        }
+      },
+      resetAll: function() {
+        try {
+          for (var k in KEYS) localStorage.removeItem(KEYS[k]);
+        } catch(e) {}
+      }
+    };
+
+    /* =========================================================================
+     * Achievements
+     * ========================================================================= */
+    var ACHIEVEMENT_DEFS = [
+      { id:'first_practice', name:'初试身手', description:'完成第 1 次练习', emoji:'🥉' },
+      { id:'practice_10',    name:'勤奋学习', description:'累计练习 10 题', emoji:'📚' },
+      { id:'practice_50',    name:'熟能生巧', description:'累计练习 50 题', emoji:'🎯' },
+      { id:'mastered_10',    name:'十公式小手', description:'掌握 10 个公式', emoji:'⭐' },
+      { id:'mastered_oll',   name:'OLL 全掌握', description:'掌握全部 57 个 OLL', emoji:'🏆' },
+      { id:'mastered_pll',   name:'PLL 全掌握', description:'掌握全部 21 个 PLL', emoji:'👑' },
+      { id:'streak_7',       name:'一周坚持', description:'连续 7 天练习', emoji:'🔥' },
+      { id:'streak_30',      name:'一月不断', description:'连续 30 天练习', emoji:'🚀' }
+    ];
+    function ensureAchievementsInit() {
+      var existing = Storage.getAchievements();
+      if (existing.length === 0) {
+        var seed = ACHIEVEMENT_DEFS.map(function(d){ return Object.assign({}, d, { unlocked:false }); });
+        Storage.setAchievements(seed);
+        return seed;
+      }
+      // Ensure new defs are added if list grew
+      var byId = {};
+      for (var i = 0; i < existing.length; i++) byId[existing[i].id] = existing[i];
+      var merged = ACHIEVEMENT_DEFS.map(function(d){
+        return byId[d.id] || Object.assign({}, d, { unlocked:false });
+      });
+      Storage.setAchievements(merged);
+      return merged;
+    }
+    function checkAndUnlock() {
+      ensureAchievementsInit();
+      var sessions = Storage.getSessions();
+      var totalPractice = sessions.reduce(function(s,x){ return s + x.total; }, 0);
+      var progress = [];
+      var allP = Storage.getAllProgress();
+      for (var k in allP) progress.push(allP[k]);
+      var mastered = progress.filter(function(p){ return p.status === 'mastered'; });
+      var masteredOll = mastered.filter(function(p){ return p.formulaId.indexOf('oll-') === 0; }).length;
+      var masteredPll = mastered.filter(function(p){ return p.formulaId.indexOf('pll-') === 0; }).length;
+      var streak = Storage.getStreak();
+      var checks = [
+        ['first_practice', sessions.length >= 1],
+        ['practice_10', totalPractice >= 10],
+        ['practice_50', totalPractice >= 50],
+        ['mastered_10', mastered.length >= 10],
+        ['mastered_oll', masteredOll >= 57],
+        ['mastered_pll', masteredPll >= 21],
+        ['streak_7', streak >= 7],
+        ['streak_30', streak >= 30]
+      ];
+      var all = Storage.getAchievements();
+      var unlockedNow = [];
+      for (var i = 0; i < checks.length; i++) {
+        var id = checks[i][0], ok = checks[i][1];
+        var item = null;
+        for (var j = 0; j < all.length; j++) if (all[j].id === id) { item = all[j]; break; }
+        if (ok && item && !item.unlocked) {
+          Storage.unlockAchievement(id);
+          unlockedNow.push(id);
+        }
+      }
+      return unlockedNow;
+    }
+
+    /* =========================================================================
+     * Analytics (console only)
+     * ========================================================================= */
+    function track(event, props) {
+      try {
+        console.log('[analytics]', Object.assign({ event: event, uid: Storage.getAnonUid(), ts: Date.now() }, props || {}));
+      } catch(e) {}
+    }
+
+    /* =========================================================================
+     * FORMULAS — populated by later commits
+     * ========================================================================= */
+    var OLL_FORMULAS = []; // injected
+    var PLL_FORMULAS = []; // injected
+    var ALL_FORMULAS = [];
+    function buildFormulaIndex() {
+      ALL_FORMULAS = OLL_FORMULAS.concat(PLL_FORMULAS);
+    }
+    function getFormulaById(id) {
+      for (var i = 0; i < ALL_FORMULAS.length; i++) if (ALL_FORMULAS[i].id === id) return ALL_FORMULAS[i];
+    }
+    function getFormulasByCategory(cat) {
+      return ALL_FORMULAS.filter(function(f){ return f.category === cat; });
+    }
+    function getSubCategories(cat) {
+      var seen = {}, out = [];
+      for (var i = 0; i < ALL_FORMULAS.length; i++) {
+        var f = ALL_FORMULAS[i];
+        if (f.category === cat && !seen[f.subCategory]) {
+          seen[f.subCategory] = true;
+          out.push(f.subCategory);
+        }
+      }
+      return out;
+    }
+    function getAdjacentFormulas(id) {
+      var f = getFormulaById(id);
+      if (!f) return {};
+      var list = getFormulasByCategory(f.category).slice().sort(function(a,b){ return a.number - b.number; });
+      var idx = -1;
+      for (var i = 0; i < list.length; i++) if (list[i].id === id) { idx = i; break; }
+      return {
+        prev: idx > 0 ? list[idx - 1] : null,
+        next: (idx >= 0 && idx < list.length - 1) ? list[idx + 1] : null
+      };
+    }
+
+    /* =========================================================================
+     * cubing.js — lazy loaded ESM (graceful fallback when offline)
+     * ========================================================================= */
+    var CUBING_STATE = { loaded: false, loading: false, failed: false, queue: [] };
+    function loadCubing() {
+      if (CUBING_STATE.loaded || CUBING_STATE.failed) return Promise.resolve(CUBING_STATE.loaded);
+      if (CUBING_STATE.loading) return new Promise(function(res){ CUBING_STATE.queue.push(res); });
+      CUBING_STATE.loading = true;
+      return new Promise(function(resolve){
+        var s = document.createElement('script');
+        s.type = 'module';
+        s.textContent = "import('https://cdn.jsdelivr.net/npm/cubing@0.55.0/twisty.js').then(function(){window.__cubingReady(true);}).catch(function(){window.__cubingReady(false);});";
+        window.__cubingReady = function(ok) {
+          CUBING_STATE.loaded = !!ok;
+          CUBING_STATE.failed = !ok;
+          CUBING_STATE.loading = false;
+          resolve(ok);
+          CUBING_STATE.queue.forEach(function(r){ r(ok); });
+          CUBING_STATE.queue = [];
+        };
+        // Timeout fallback
+        setTimeout(function(){
+          if (CUBING_STATE.loading) window.__cubingReady(false);
+        }, 8000);
+        document.head.appendChild(s);
+      });
+    }
+    /**
+     * Mount a cube view inside `host` element.
+     * opts: { alg, setupAlg, visualization, controlPanel, background, hintFacelets, backView, size }
+     */
+    function mountCube(host, opts) {
+      if (!host) return;
+      opts = opts || {};
+      var size = opts.size || 240;
+      host.innerHTML = '';
+      host.style.minHeight = Math.min(size, 280) + 'px';
+
+      function renderFallback() {
+        var el = document.createElement('div');
+        el.className = 'cube-fallback';
+        el.innerHTML = '<div style="font-size:2rem">🧊</div>' +
+          '<div style="margin-top:6px">' + escapeHtml(opts.alg || '—') + '</div>';
+        host.appendChild(el);
+      }
+
+      if (CUBING_STATE.failed) { renderFallback(); return; }
+
+      // Placeholder
+      var ph = document.createElement('div');
+      ph.className = 'cube-fallback';
+      ph.textContent = '魔方加载中…';
+      host.appendChild(ph);
+
+      loadCubing().then(function(ok){
+        if (!ok) { host.innerHTML = ''; renderFallback(); return; }
+        host.innerHTML = '';
+        var p = document.createElement('twisty-player');
+        p.setAttribute('puzzle', '3x3x3');
+        p.setAttribute('visualization', opts.visualization || '3D');
+        p.setAttribute('background', opts.background || 'none');
+        p.setAttribute('control-panel', opts.controlPanel || 'bottom-row');
+        p.setAttribute('hint-facelets', opts.hintFacelets || 'floating');
+        p.setAttribute('back-view', opts.backView || 'none');
+        p.setAttribute('tempo-scale', String(opts.tempoScale || 1));
+        if (opts.alg) p.setAttribute('alg', opts.alg);
+        if (opts.setupAlg) p.setAttribute('experimental-setup-alg', opts.setupAlg);
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.maxWidth = '100%';
+        host.appendChild(p);
+      });
+    }
+
+    /* =========================================================================
+     * Router
+     * ========================================================================= */
+    var ROUTES = ['/', '/learn', '/practice', '/dashboard', '/pricing'];
+    function parseHash() {
+      var h = location.hash || '#/';
+      if (h.charAt(0) === '#') h = h.slice(1);
+      if (!h) h = '/';
+      return h;
+    }
+    function setActiveNav(path) {
+      var anchors = document.querySelectorAll('#nav a');
+      for (var i = 0; i < anchors.length; i++) {
+        var m = anchors[i].getAttribute('data-match');
+        var active = (m === '/') ? (path === '/') : (path.indexOf(m) === 0);
+        anchors[i].classList.toggle('active', active);
+      }
+    }
+    function showView(id) {
+      var views = document.querySelectorAll('.view');
+      for (var i = 0; i < views.length; i++) views[i].classList.toggle('active', views[i].id === id);
+      window.scrollTo(0, 0);
+    }
+    function router() {
+      var path = parseHash();
+      setActiveNav(path);
+      if (path === '/') { showView('view-home'); return; }
+      if (path === '/learn') { showView('view-learn'); renderLearn(); return; }
+      if (/^\/learn\/(OLL|PLL)\/([\w-]+)$/.test(path)) {
+        var m = path.match(/^\/learn\/(OLL|PLL)\/([\w-]+)$/);
+        showView('view-detail'); renderDetail(m[2]); return;
+      }
+      if (path === '/practice') { showView('view-practice'); renderPractice(); return; }
+      if (path === '/dashboard') { showView('view-dashboard'); renderDashboard(); return; }
+      if (path === '/pricing') { showView('view-pricing'); renderPricing(); return; }
+      showView('view-404');
+    }
+    window.addEventListener('hashchange', router);
+
+    /* =========================================================================
+     * View renderers — minimal placeholders, replaced by later commits
+     * ========================================================================= */
+    function renderLearn() {
+      var list = document.getElementById('learn-list');
+      if (list) list.innerHTML = '<div class="col-span-full center t-muted py-10">公式数据加载中…</div>';
+    }
+    function renderDetail(id) {
+      var el = document.getElementById('detail-root');
+      if (el) el.innerHTML = '<div class="center py-10 t-muted">详情视图加载中…</div>';
+    }
+    function renderPractice() {
+      var el = document.getElementById('practice-root');
+      if (el) el.innerHTML = '<div class="center py-10 t-muted">练习视图加载中…</div>';
+    }
+    function renderDashboard() {
+      var el = document.getElementById('dashboard-root');
+      if (el) el.innerHTML = '<div class="center py-10 t-muted">仪表盘加载中…</div>';
+    }
+    function renderPricing() {
+      var el = document.getElementById('pricing-root');
+      if (el) el.innerHTML = '<div class="center py-10 t-muted">定价页加载中…</div>';
+    }
+
+    /* =========================================================================
+     * Modal helpers
+     * ========================================================================= */
+    function showModal(html, onClose) {
+      var root = document.getElementById('modal-root');
+      root.innerHTML = '<div class="modal-mask" id="__mm"><div class="modal" id="__md">' + html + '</div></div>';
+      var mask = document.getElementById('__mm');
+      var box = document.getElementById('__md');
+      function close() {
+        root.innerHTML = '';
+        if (typeof onClose === 'function') onClose();
+      }
+      mask.addEventListener('click', function(e){ if (e.target === mask) close(); });
+      window.__closeModal = close;
+      return close;
+    }
+    function closeModal() {
+      if (window.__closeModal) window.__closeModal();
+      else document.getElementById('modal-root').innerHTML = '';
+    }
+    function showPremiumModal(opts) {
+      opts = opts || {};
+      track('premium_modal_show', { formulaId: opts.formulaId, feature: opts.feature });
+      var html = '' +
+        '<div class="center" style="font-size:3rem">🔒</div>' +
+        '<h2 class="center mt-3">这个是 Pro 内容</h2>' +
+        '<p class="center t-muted mt-2">解锁全部 78 个公式、计时挑战、弱项强化与详细数据报告。</p>' +
+        '<div class="mt-6 flex" style="flex-direction:column;gap:12px">' +
+        '  <a href="#/pricing" class="btn btn-primary" data-nav id="__pmGo">查看 Pro 详情</a>' +
+        '  <button class="btn btn-ghost" id="__pmClose">稍后再说</button>' +
+        '</div>';
+      var close = showModal(html, opts.onClose);
+      document.getElementById('__pmClose').addEventListener('click', close);
+      document.getElementById('__pmGo').addEventListener('click', function(){ close(); });
+    }
+
+    /* =========================================================================
+     * Global click delegation for SPA nav links
+     * ========================================================================= */
+    document.addEventListener('click', function(e){
+      var t = e.target;
+      while (t && t !== document.body) {
+        if (t.matches && t.matches('a[data-nav]')) {
+          // hash navigation is native; nothing extra needed
+          break;
+        }
+        t = t.parentNode;
+      }
+    });
+
+    /* =========================================================================
+     * Boot
+     * ========================================================================= */
+    document.getElementById('year').textContent = new Date().getFullYear();
+    if (!location.hash) location.hash = '#/';
+    ensureAchievementsInit();
+    Storage.getUser();
+    buildFormulaIndex();
+    router();
   </script>
+
+  <!-- ============ /* OLL_DATA_PLACEHOLDER */ ============ -->
+  <!-- ============ /* PLL_DATA_PLACEHOLDER */ ============ -->
+  <!-- ============ /* LEARN_VIEW_PLACEHOLDER */ ============ -->
+  <!-- ============ /* DETAIL_VIEW_PLACEHOLDER */ ============ -->
+  <!-- ============ /* PRACTICE_VIEW_PLACEHOLDER */ ============ -->
+  <!-- ============ /* DASHBOARD_VIEW_PLACEHOLDER */ ============ -->
+  <!-- ============ /* PRICING_VIEW_PLACEHOLDER */ ============ -->
 </body>
 </html>
