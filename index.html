@@ -1,1051 +1,378 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <meta name="theme-color" content="#FFD500" />
-  <title>小魔方大师 - 你的 AI 魔方教练</title>
-  <meta name="description" content="57 个 OLL + 21 个 PLL 公式，告别纸质打印。小魔方大师是孩子们的 3x3 魔方 CFOP 学习伙伴。" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23FFD500'/%3E%3C/svg%3E" />
-
-  <style>
-    /* ========= Reset ========= */
-    *,*::before,*::after { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
-    a { color: inherit; text-decoration: none; }
-    button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
-    input { font: inherit; }
-    ul { list-style: none; padding: 0; margin: 0; }
-
-    :root {
-      --bg: #F7F8FA;
-      --text: #1A1A1A;
-      --muted: #6B7280;
-      --card: #FFFFFF;
-      --line: #E5E7EB;
-      --yellow: #FFD500;
-      --blue: #0046AD;
-      --green: #009B48;
-      --red: #B71234;
-      --orange: #FF5800;
-      --shadow-card: 0 2px 8px rgba(0,0,0,0.06);
-      --shadow-pop: 0 8px 24px rgba(0,70,173,0.15);
-    }
-    html, body {
-      background: var(--bg);
-      color: var(--text);
-      -webkit-font-smoothing: antialiased;
-      font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-      font-size: 16px;
-      line-height: 1.5;
-    }
-    @media (min-width: 768px) { html, body { font-size: 18px; } }
-
-    h1,h2,h3 { margin: 0; line-height: 1.25; }
-    h1 { font-size: 1.875rem; font-weight: 700; }
-    h2 { font-size: 1.5rem; font-weight: 700; }
-    h3 { font-size: 1.25rem; font-weight: 600; }
-    @media (min-width: 768px) {
-      h1 { font-size: 2.25rem; }
-      h2 { font-size: 1.875rem; }
-      h3 { font-size: 1.5rem; }
-    }
-    p { margin: 0; }
-
-    /* ========= Layout ========= */
-    .min-screen { min-height: 100vh; display: flex; flex-direction: column; }
-    .container { max-width: 1024px; margin: 0 auto; padding: 0 16px; width: 100%; }
-    .container-sm { max-width: 768px; margin: 0 auto; padding: 0 16px; width: 100%; }
-    .container-xs { max-width: 640px; margin: 0 auto; padding: 0 16px; width: 100%; }
-
-    /* ========= Header ========= */
-    .site-header {
-      position: sticky; top: 0; z-index: 30;
-      background: rgba(255,255,255,0.9);
-      backdrop-filter: saturate(180%) blur(12px);
-      -webkit-backdrop-filter: saturate(180%) blur(12px);
-      border-bottom: 1px solid var(--line);
-    }
-    .site-header .bar {
-      height: 56px; display: flex; align-items: center; justify-content: space-between;
-    }
-    .site-header .brand {
-      display: flex; align-items: center; gap: 8px;
-      font-weight: 700; color: var(--blue);
-    }
-    .site-header .brand .square {
-      display: inline-block; width: 24px; height: 24px; border-radius: 4px; background: var(--yellow);
-    }
-    .site-header nav { display: flex; align-items: center; gap: 4px; }
-    .site-header nav a {
-      padding: 6px 12px; border-radius: 12px;
-      font-size: 0.875rem; font-weight: 500; color: #4b5563;
-      transition: background .15s ease;
-    }
-    @media (min-width: 768px) { .site-header nav a { font-size: 1rem; } }
-    .site-header nav a:hover { background: #f3f4f6; }
-    .site-header nav a.active { background: var(--yellow); color: var(--blue); }
-
-    /* ========= Buttons ========= */
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-      border-radius: 16px; padding: 12px 24px;
-      font-weight: 600; font-size: 0.95rem;
-      transition: transform .12s ease, filter .15s ease, box-shadow .15s ease, background .15s ease;
-      cursor: pointer; text-align: center;
-    }
-    .btn:active { transform: scale(0.96); }
-    .btn-primary { background: var(--yellow); color: var(--blue); box-shadow: var(--shadow-card); }
-    .btn-primary:hover { filter: brightness(1.05); }
-    .btn-secondary { background: var(--blue); color: #fff; box-shadow: var(--shadow-card); }
-    .btn-secondary:hover { filter: brightness(1.10); }
-    .btn-ghost {
-      background: #fff; color: var(--blue);
-      border: 1px solid rgba(0,70,173,0.2);
-    }
-    .btn-ghost:hover { background: rgba(0,70,173,0.05); }
-    .btn-block { width: 100%; }
-
-    /* ========= Card ========= */
-    .card {
-      background: var(--card); border-radius: 16px;
-      padding: 16px; box-shadow: var(--shadow-card);
-    }
-    @media (min-width: 768px) { .card { padding: 24px; } }
-    .card.hover { transition: box-shadow .15s ease, transform .15s ease; }
-    .card.hover:hover { box-shadow: var(--shadow-pop); transform: translateY(-2px); }
-
-    /* ========= Grid ========= */
-    .grid { display: grid; gap: 12px; }
-    .grid-2 { grid-template-columns: repeat(2, 1fr); }
-    .grid-3 { grid-template-columns: 1fr; }
-    .grid-4 { grid-template-columns: repeat(2, 1fr); }
-    @media (min-width: 768px) {
-      .grid { gap: 16px; }
-      .grid-3 { grid-template-columns: repeat(3, 1fr); }
-      .grid-4 { grid-template-columns: repeat(3, 1fr); }
-      .grid-md-4 { grid-template-columns: repeat(4, 1fr); }
-    }
-    @media (min-width: 1024px) {
-      .grid-4 { grid-template-columns: repeat(4, 1fr); }
-    }
-
-    /* ========= Pills ========= */
-    .pill {
-      display: inline-flex; align-items: center;
-      padding: 2px 10px; border-radius: 999px;
-      font-size: 0.72rem; font-weight: 600;
-    }
-    .pill-yellow { background: var(--yellow); color: var(--blue); }
-    .pill-blue { background: var(--blue); color: #fff; }
-    .pill-green { background: var(--green); color: #fff; }
-    .pill-gray { background: #e5e7eb; color: #4b5563; }
-
-    /* ========= Status badge ========= */
-    .badge {
-      display: inline-flex; align-items: center;
-      padding: 2px 8px; border-radius: 999px;
-      font-size: 0.7rem; font-weight: 600;
-    }
-    .badge-new { background: #e5e7eb; color: #4b5563; }
-    .badge-learning { background: var(--yellow); color: var(--blue); }
-    .badge-mastered { background: var(--green); color: #fff; }
-
-    /* ========= Inputs ========= */
-    .input {
-      width: 100%; padding: 12px 16px; border-radius: 16px;
-      border: 1px solid var(--line); background: #fff;
-      transition: border-color .15s ease;
-    }
-    .input:focus { outline: none; border-color: var(--blue); }
-
-    /* ========= Alg text ========= */
-    .alg-text {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      letter-spacing: 0.02em;
-      font-size: 1.1rem;
-    }
-    @media (min-width: 768px) { .alg-text { font-size: 1.4rem; } }
-
-    /* ========= Hero badge ========= */
-    .hero-badge {
-      display: inline-block; padding: 4px 12px;
-      border-radius: 999px; background: var(--yellow); color: var(--blue);
-      font-size: 0.875rem; font-weight: 600; margin-bottom: 16px;
-    }
-
-    /* ========= Color helpers ========= */
-    .t-blue { color: var(--blue); }
-    .t-muted { color: var(--muted); }
-    .t-green { color: var(--green); }
-    .center { text-align: center; }
-    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .break-words { word-break: break-word; }
-
-    /* ========= Spacing helpers ========= */
-    .mt-1{margin-top:4px}.mt-2{margin-top:8px}.mt-3{margin-top:12px}.mt-4{margin-top:16px}
-    .mt-6{margin-top:24px}.mt-8{margin-top:32px}.mt-10{margin-top:40px}.mt-16{margin-top:64px}
-    .mb-2{margin-bottom:8px}.mb-4{margin-bottom:16px}
-    .py-6 { padding-top: 24px; padding-bottom: 24px; }
-    .py-8 { padding-top: 32px; padding-bottom: 32px; }
-    .py-10 { padding-top: 40px; padding-bottom: 40px; }
-    .px-4 { padding-left: 16px; padding-right: 16px; }
-
-    /* ========= Cube view container ========= */
-    .cube-host {
-      display: flex; align-items: center; justify-content: center;
-      background: #f3f4f6; border-radius: 12px; overflow: hidden;
-      min-height: 110px;
-    }
-    .cube-host.lg { min-height: 280px; }
-    .cube-fallback {
-      padding: 12px; text-align: center; color: var(--muted);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 0.9rem; word-break: break-word;
-    }
-    twisty-player { max-width: 100%; }
-
-    /* ========= Formula list card ========= */
-    .formula-card {
-      position: relative;
-      display: block;
-    }
-    .formula-card .corner {
-      position: absolute; top: 8px; right: 8px;
-      display: flex; align-items: center; gap: 4px;
-      z-index: 2;
-    }
-
-    /* ========= Tabs ========= */
-    .tabs {
-      display: inline-flex; background: #fff; border-radius: 16px;
-      padding: 4px; box-shadow: var(--shadow-card);
-    }
-    .tabs button {
-      padding: 8px 20px; border-radius: 12px;
-      font-size: 0.95rem; font-weight: 600; color: #6b7280;
-      transition: background .15s ease, color .15s ease;
-    }
-    .tabs button.active { background: var(--yellow); color: var(--blue); }
-
-    /* ========= Sub category chips ========= */
-    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip {
-      padding: 4px 12px; border-radius: 999px;
-      font-size: 0.85rem; background: #fff; color: #374151;
-      border: 1px solid var(--line);
-      transition: all .15s ease;
-    }
-    .chip:hover { border-color: var(--blue); }
-    .chip.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-
-    /* ========= Modal ========= */
-    .modal-mask {
-      position: fixed; inset: 0; z-index: 50;
-      background: rgba(0,0,0,0.4);
-      display: flex; align-items: center; justify-content: center;
-      padding: 16px;
-    }
-    .modal {
-      background: #fff; border-radius: 24px;
-      max-width: 440px; width: 100%;
-      padding: 24px;
-      box-shadow: var(--shadow-pop);
-      animation: pop .2s ease-out;
-    }
-    @keyframes pop {
-      0% { transform: scale(0.95); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-
-    /* ========= Toast ========= */
-    .toast {
-      position: fixed; left: 50%; bottom: 32px;
-      transform: translateX(-50%) translateY(140%);
-      background: #1A1A1A; color: #fff;
-      padding: 10px 18px; border-radius: 999px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.25);
-      transition: transform .3s cubic-bezier(.2,.8,.2,1);
-      z-index: 9999; font-weight: 600;
-      max-width: 90vw; text-align: center; font-size: 0.9rem;
-    }
-    .toast.show { transform: translateX(-50%) translateY(0); }
-
-    /* ========= Heatmap ========= */
-    .heatmap {
-      display: grid; grid-auto-flow: column;
-      grid-template-rows: repeat(7, 1fr);
-      gap: 4px;
-    }
-    .heatmap .cell {
-      width: 14px; height: 14px; border-radius: 3px;
-      background: #f3f4f6;
-    }
-    .heatmap .cell.l0 { background: #f3f4f6; }
-    .heatmap .cell.l1 { background: rgba(255,213,0,0.4); }
-    .heatmap .cell.l2 { background: rgba(255,213,0,0.7); }
-    .heatmap .cell.l3 { background: #FFD500; }
-    .heatmap .cell.l4 { background: #0046AD; }
-    .heatmap-legend {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 0.75rem; color: var(--muted); margin-top: 10px;
-    }
-    .heatmap-legend .swatch { width: 12px; height: 12px; border-radius: 3px; }
-
-    /* ========= Progress ring ========= */
-    .ring-wrap { position: relative; display: inline-block; }
-    .ring-wrap .ring-text {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      pointer-events: none;
-    }
-    .ring-wrap .ring-text .val { font-size: 1.4rem; font-weight: 700; color: var(--blue); }
-    .ring-wrap .ring-text .lbl { font-size: 0.75rem; color: var(--muted); }
-
-    /* ========= Flashcard ========= */
-    .progress-bar {
-      height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden;
-    }
-    .progress-bar > div {
-      height: 100%; background: var(--yellow);
-      transition: width .3s ease;
-    }
-    @keyframes flipIn {
-      0% { transform: rotateY(90deg); opacity: 0; }
-      100% { transform: rotateY(0); opacity: 1; }
-    }
-    .flip-in { animation: flipIn .4s ease-out; }
-
-    /* ========= Avatar picker ========= */
-    .avatar-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
-      margin-top: 16px;
-    }
-    .avatar-grid button {
-      aspect-ratio: 1 / 1; font-size: 2rem; border-radius: 16px;
-      background: #f3f4f6;
-      display: flex; align-items: center; justify-content: center;
-      transition: background .15s ease, box-shadow .15s ease;
-    }
-    .avatar-grid button.active {
-      background: var(--yellow);
-      box-shadow: 0 0 0 2px var(--blue);
-    }
-
-    /* ========= Achievement ========= */
-    .ach-card {
-      border-radius: 16px; padding: 12px; text-align: center;
-      background: #f3f4f6; opacity: 0.6;
-    }
-    .ach-card.unlocked {
-      background: rgba(255,213,0,0.4); opacity: 1;
-    }
-    .ach-card .emoji { font-size: 1.875rem; }
-
-    /* ========= Footer ========= */
-    .site-footer {
-      margin-top: 64px; padding: 32px 0;
-      text-align: center; font-size: 0.85rem; color: var(--muted);
-    }
-
-    /* ========= Hide / show on navigation ========= */
-    .view { display: none; }
-    .view.active { display: block; }
-
-    /* ========= Misc ========= */
-    .divide-y > * + * { border-top: 1px solid var(--line); }
-    .hidden { display: none !important; }
-    .flex { display: flex; }
-    .flex-1 { flex: 1; }
-    .items-center { align-items: center; }
-    .items-start { align-items: flex-start; }
-    .justify-between { justify-content: space-between; }
-    .justify-center { justify-content: center; }
-    .gap-2 { gap: 8px; }
-    .gap-3 { gap: 12px; }
-    .gap-4 { gap: 16px; }
-    .text-xs { font-size: 0.75rem; }
-    .text-sm { font-size: 0.875rem; }
-    .text-lg { font-size: 1.1rem; }
-    .text-xl { font-size: 1.25rem; }
-    .text-2xl { font-size: 1.5rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .text-5xl { font-size: 3rem; }
-    .font-bold { font-weight: 700; }
-    .font-semibold { font-weight: 600; }
-    .underline { text-decoration: underline; }
-    .relative { position: relative; }
-    .w-full { width: 100%; }
-    .block { display: block; }
-    .inline-block { display: inline-block; }
-    .rounded-full { border-radius: 999px; }
-    .rounded-xl { border-radius: 12px; }
-    .rounded-2xl { border-radius: 16px; }
-    .min-h-110 { min-height: 110px; }
-    .overflow-x-auto { overflow-x: auto; }
-    .min-h-screen { min-height: 100vh; }
-    .col-span-full { grid-column: 1 / -1; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<meta name="theme-color" content="#FFD500" />
+<title>小魔方大师 - 你的 AI 魔方教练</title>
+<meta name="description" content="57 个 OLL + 21 个 PLL 公式，告别纸质打印。" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23FFD500'/%3E%3C/svg%3E" />
+<style>
+*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0}a{color:inherit;text-decoration:none}button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}input{font:inherit}ul{list-style:none;padding:0;margin:0}
+:root{--bg:#F7F8FA;--text:#1A1A1A;--muted:#6B7280;--card:#FFFFFF;--line:#E5E7EB;--yellow:#FFD500;--blue:#0046AD;--green:#009B48;--red:#B71234;--shadow-card:0 2px 8px rgba(0,0,0,.06);--shadow-pop:0 8px 24px rgba(0,70,173,.15)}
+html,body{background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.5}
+@media (min-width:768px){html,body{font-size:18px}}
+h1,h2,h3{margin:0;line-height:1.25}h1{font-size:1.875rem;font-weight:700}h2{font-size:1.5rem;font-weight:700}h3{font-size:1.25rem;font-weight:600}
+@media (min-width:768px){h1{font-size:2.25rem}h2{font-size:1.875rem}h3{font-size:1.5rem}}
+p{margin:0}
+.min-screen{min-height:100vh;display:flex;flex-direction:column}.container{max-width:1024px;margin:0 auto;padding:0 16px;width:100%}.container-sm{max-width:768px;margin:0 auto;padding:0 16px;width:100%}
+.site-header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.9);backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
+.site-header .bar{height:56px;display:flex;align-items:center;justify-content:space-between}
+.site-header .brand{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--blue)}
+.site-header .brand .square{display:inline-block;width:24px;height:24px;border-radius:4px;background:var(--yellow)}
+.site-header nav{display:flex;align-items:center;gap:4px}
+.site-header nav a{padding:6px 12px;border-radius:12px;font-size:.875rem;font-weight:500;color:#4b5563;transition:background .15s ease}
+@media (min-width:768px){.site-header nav a{font-size:1rem}}
+.site-header nav a:hover{background:#f3f4f6}.site-header nav a.active{background:var(--yellow);color:var(--blue)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:16px;padding:12px 24px;font-weight:600;font-size:.95rem;transition:transform .12s ease,filter .15s ease,box-shadow .15s ease;cursor:pointer;text-align:center}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:var(--yellow);color:var(--blue);box-shadow:var(--shadow-card)}.btn-primary:hover{filter:brightness(1.05)}
+.btn-secondary{background:var(--blue);color:#fff;box-shadow:var(--shadow-card)}.btn-secondary:hover{filter:brightness(1.1)}
+.btn-ghost{background:#fff;color:var(--blue);border:1px solid rgba(0,70,173,.2)}.btn-ghost:hover{background:rgba(0,70,173,.05)}
+.btn-block{width:100%}
+.card{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--shadow-card)}
+@media (min-width:768px){.card{padding:24px}}
+.card.hover{transition:box-shadow .15s ease,transform .15s ease}.card.hover:hover{box-shadow:var(--shadow-pop);transform:translateY(-2px)}
+.grid{display:grid;gap:12px}.grid-2{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:1fr}.grid-4{grid-template-columns:repeat(2,1fr)}
+@media (min-width:768px){.grid{gap:16px}.grid-3{grid-template-columns:repeat(3,1fr)}.grid-4{grid-template-columns:repeat(3,1fr)}}
+@media (min-width:1024px){.grid-4{grid-template-columns:repeat(4,1fr)}}
+.pill{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;font-size:.72rem;font-weight:600}
+.pill-yellow{background:var(--yellow);color:var(--blue)}.pill-blue{background:var(--blue);color:#fff}.pill-green{background:var(--green);color:#fff}.pill-gray{background:#e5e7eb;color:#4b5563}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:600}
+.badge-new{background:#e5e7eb;color:#4b5563}.badge-learning{background:var(--yellow);color:var(--blue)}.badge-mastered{background:var(--green);color:#fff}
+.input{width:100%;padding:12px 16px;border-radius:16px;border:1px solid var(--line);background:#fff;transition:border-color .15s ease}.input:focus{outline:none;border-color:var(--blue)}
+.alg-text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.02em;font-size:1.1rem}
+@media (min-width:768px){.alg-text{font-size:1.4rem}}
+.hero-badge{display:inline-block;padding:4px 12px;border-radius:999px;background:var(--yellow);color:var(--blue);font-size:.875rem;font-weight:600;margin-bottom:16px}
+.t-blue{color:var(--blue)}.t-muted{color:var(--muted)}.t-green{color:var(--green)}
+.center{text-align:center}.break-words{word-break:break-word}
+.mt-1{margin-top:4px}.mt-2{margin-top:8px}.mt-3{margin-top:12px}.mt-4{margin-top:16px}.mt-6{margin-top:24px}.mt-8{margin-top:32px}.mt-10{margin-top:40px}.mt-16{margin-top:64px}
+.mb-2{margin-bottom:8px}.mb-4{margin-bottom:16px}
+.py-6{padding-top:24px;padding-bottom:24px}.py-8{padding-top:32px;padding-bottom:32px}.py-10{padding-top:40px;padding-bottom:40px}
+.cube-host{display:flex;align-items:center;justify-content:center;background:#f3f4f6;border-radius:12px;overflow:hidden;min-height:110px}
+.cube-host.lg{min-height:280px}
+.cube-fallback{padding:12px;text-align:center;color:var(--muted);font-family:ui-monospace,monospace;font-size:.9rem;word-break:break-word}
+twisty-player{max-width:100%}
+.formula-card{position:relative;display:block}
+.formula-card .corner{position:absolute;top:8px;right:8px;display:flex;align-items:center;gap:4px;z-index:2}
+.tabs{display:inline-flex;background:#fff;border-radius:16px;padding:4px;box-shadow:var(--shadow-card)}
+.tabs button{padding:8px 20px;border-radius:12px;font-size:.95rem;font-weight:600;color:#6b7280;transition:background .15s ease,color .15s ease}
+.tabs button.active{background:var(--yellow);color:var(--blue)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:4px 12px;border-radius:999px;font-size:.85rem;background:#fff;color:#374151;border:1px solid var(--line);transition:all .15s ease}
+.chip:hover{border-color:var(--blue)}.chip.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.modal-mask{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#fff;border-radius:24px;max-width:440px;width:100%;padding:24px;box-shadow:var(--shadow-pop);animation:pop .2s ease-out}
+@keyframes pop{0%{transform:scale(.95)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+.toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(140%);background:#1A1A1A;color:#fff;padding:10px 18px;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.25);transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:9999;font-weight:600;max-width:90vw;text-align:center;font-size:.9rem}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.heatmap{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:4px}
+.heatmap .cell{width:14px;height:14px;border-radius:3px;background:#f3f4f6}
+.heatmap .cell.l0{background:#f3f4f6}.heatmap .cell.l1{background:rgba(255,213,0,.4)}.heatmap .cell.l2{background:rgba(255,213,0,.7)}.heatmap .cell.l3{background:#FFD500}.heatmap .cell.l4{background:#0046AD}
+.heatmap-legend{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted);margin-top:10px}
+.heatmap-legend .swatch{width:12px;height:12px;border-radius:3px}
+.ring-wrap{position:relative;display:inline-block}
+.ring-wrap .ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.ring-wrap .ring-text .val{font-size:1.4rem;font-weight:700;color:var(--blue)}.ring-wrap .ring-text .lbl{font-size:.75rem;color:var(--muted)}
+.progress-bar{height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+.progress-bar>div{height:100%;background:var(--yellow);transition:width .3s ease}
+@keyframes flipIn{0%{transform:rotateY(90deg);opacity:0}100%{transform:rotateY(0);opacity:1}}
+.flip-in{animation:flipIn .4s ease-out}
+.avatar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.avatar-grid button{aspect-ratio:1/1;font-size:2rem;border-radius:16px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;transition:background .15s ease,box-shadow .15s ease}
+.avatar-grid button.active{background:var(--yellow);box-shadow:0 0 0 2px var(--blue)}
+.ach-card{border-radius:16px;padding:12px;text-align:center;background:#f3f4f6;opacity:.6}
+.ach-card.unlocked{background:rgba(255,213,0,.4);opacity:1}
+.ach-card .emoji{font-size:1.875rem}
+.site-footer{margin-top:64px;padding:32px 0;text-align:center;font-size:.85rem;color:var(--muted)}
+.view{display:none}.view.active{display:block}
+.hidden{display:none !important}
+.flex{display:flex}.flex-1{flex:1}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}
+.gap-2{gap:8px}.gap-3{gap:12px}.gap-4{gap:16px}
+.text-xs{font-size:.75rem}.text-sm{font-size:.875rem}.text-lg{font-size:1.1rem}.text-xl{font-size:1.25rem}.text-2xl{font-size:1.5rem}.text-3xl{font-size:1.875rem}.text-5xl{font-size:3rem}
+.font-bold{font-weight:700}.font-semibold{font-weight:600}
+.relative{position:relative}.w-full{width:100%}.block{display:block}.overflow-x-auto{overflow-x:auto}
+.min-h-screen{min-height:100vh}.col-span-full{grid-column:1/-1}
+</style>
 </head>
 <body>
-  <div class="min-screen">
-    <!-- ============ Header ============ -->
-    <header class="site-header">
-      <div class="container bar">
-        <a href="#/" class="brand" data-nav>
-          <span class="square"></span>
-          <span>小魔方大师</span>
-        </a>
-        <nav id="nav">
-          <a href="#/" data-nav data-match="/">首页</a>
-          <a href="#/learn" data-nav data-match="/learn">学习</a>
-          <a href="#/practice" data-nav data-match="/practice">练习</a>
-          <a href="#/dashboard" data-nav data-match="/dashboard">我的</a>
-          <a href="#/pricing" data-nav data-match="/pricing">Pro</a>
-        </nav>
-      </div>
-    </header>
+<div class="min-screen">
+<header class="site-header"><div class="container bar">
+<a href="#/" class="brand"><span class="square"></span><span>小魔方大师</span></a>
+<nav id="nav"><a href="#/" data-match="/">首页</a><a href="#/learn" data-match="/learn">学习</a><a href="#/practice" data-match="/practice">练习</a><a href="#/dashboard" data-match="/dashboard">我的</a><a href="#/pricing" data-match="/pricing">Pro</a></nav>
+</div></header>
+<main id="app" class="flex-1">
+<section id="view-home" class="view"><div class="container py-10">
+<section class="center">
+<div class="hero-badge">🧊 v1 MVP · 面向 9-15 岁孩子</div>
+<h1 style="font-size:2.25rem;line-height:1.2">小魔方大师 — <span class="t-blue">你的 AI 魔方教练</span></h1>
+<p class="mt-4 text-lg t-muted">57 个 OLL + 21 个 PLL 公式，告别纸质打印。<br />在浏览器里看动画、练闪卡、记进度。</p>
+<div class="mt-8 flex gap-3 justify-center" style="flex-wrap:wrap">
+<a href="#/learn" class="btn btn-primary text-lg">🚀 开始免费学习</a>
+<a href="#/pricing" class="btn btn-ghost text-lg">查看 Pro 功能</a>
+</div></section>
+<section class="mt-16 grid grid-3">
+<div class="card center"><div class="text-5xl">📚</div><h3 class="mt-2">系统化公式库</h3><p class="mt-2 t-muted">57 OLL + 21 PLL 全收录，按图形分类，一眼看懂。</p></div>
+<div class="card center"><div class="text-5xl">🎯</div><h3 class="mt-2">智能练习跟踪</h3><p class="mt-2 t-muted">闪卡、计时挑战、弱项重点推荐。</p></div>
+<div class="card center"><div class="text-5xl">🏆</div><h3 class="mt-2">闯关式成就</h3><p class="mt-2 t-muted">连续学习、掌握里程碑、徽章。</p></div>
+</section>
+<section class="mt-16 card flex items-center justify-between gap-4" style="flex-wrap:wrap">
+<div><h3>⏳ Pro 版即将上线</h3><p class="t-muted mt-1">解锁全部公式、计时挑战、弱项 AI 推荐。</p></div>
+<a href="#/pricing" class="btn btn-secondary">了解详情</a>
+</section>
+<footer class="site-footer">© <span id="year"></span> 小魔方大师 · 面向少年与魔方机构</footer>
+</div></section>
+<section id="view-learn" class="view"><div class="container py-6">
+<h1>公式库</h1><p class="t-muted mt-1">点击公式查看动画详情。锁号 🔒 = Pro 专享。</p>
+<div class="mt-4 tabs" id="learn-tabs"><button data-cat="OLL" class="active">OLL · 57 个</button><button data-cat="PLL">PLL · 21 个</button></div>
+<div class="mt-4 chips" id="learn-subs"></div>
+<input id="learn-search" class="input mt-4" placeholder="搜索编号或名称，如 27、Sune、Ua…" />
+<div class="mt-6 grid grid-4" id="learn-list"></div>
+</div></section>
+<section id="view-detail" class="view"><div class="container-sm py-6" id="detail-root"></div></section>
+<section id="view-practice" class="view"><div class="container py-6" id="practice-root"></div></section>
+<section id="view-dashboard" class="view"><div class="container py-6" id="dashboard-root"></div></section>
+<section id="view-pricing" class="view"><div class="container py-8" id="pricing-root"></div></section>
+<section id="view-404" class="view"><div class="container py-10 center min-h-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+<div class="text-5xl">🧊</div><h1 class="mt-4">页面走失了</h1><p class="t-muted mt-2">这个位置还没有东西。</p>
+<a href="#/" class="btn btn-primary mt-6">回到首页</a>
+</div></section>
+</main></div>
+<div class="toast" id="toast"></div><div id="modal-root"></div>
 
-    <!-- ============ Views ============ -->
-    <main id="app" class="flex-1">
-      <!-- 首页 -->
-      <section id="view-home" class="view">
-        <div class="container py-10">
-          <section class="center">
-            <div class="hero-badge">🧊 v1 MVP · 面向 9-15 岁孩子</div>
-            <h1 style="font-size:2.25rem;line-height:1.2">
-              小魔方大师 — <span class="t-blue">你的 AI 魔方教练</span>
-            </h1>
-            <p class="mt-4 text-lg t-muted">
-              57 个 OLL + 21 个 PLL 公式，告别纸质打印。<br />
-              在浏览器里看动画、练闪卡、记进度。
-            </p>
-            <div class="mt-8 flex gap-3 justify-center" style="flex-wrap:wrap">
-              <a href="#/learn" data-nav class="btn btn-primary text-lg">🚀 开始免费学习</a>
-              <a href="#/pricing" data-nav class="btn btn-ghost text-lg">查看 Pro 功能</a>
-            </div>
-          </section>
+<script>
+var __toastEl=document.getElementById('toast'),__toastTimer;
+function toast(msg){__toastEl.textContent=msg;__toastEl.classList.add('show');clearTimeout(__toastTimer);__toastTimer=setTimeout(function(){__toastEl.classList.remove('show')},1800)}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function invertAlgorithm(alg){return String(alg||'').trim().split(/\s+/).filter(Boolean).reverse().map(function(m){if(m.endsWith("'"))return m.slice(0,-1);if(m.endsWith('2'))return m;return m+"'"}).join(' ')}
+function copyToClipboard(text){if(navigator.clipboard&&window.isSecureContext){return navigator.clipboard.writeText(text).then(function(){return true}).catch(function(){return fallbackCopy(text)})}return Promise.resolve(fallbackCopy(text))}
+function fallbackCopy(text){try{var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';ta.setAttribute('readonly','');document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,text.length);var ok=document.execCommand('copy');document.body.removeChild(ta);return ok}catch(e){return false}}
+function uuid(){if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();return 'anon-'+Date.now()+'-'+Math.random().toString(36).slice(2)}
+function todayStr(){return new Date().toISOString().slice(0,10)}
+var KEYS={user:'mc_user',anonUid:'mc_anon_uid',progress:'mc_progress',sessions:'mc_sessions',achievements:'mc_achievements'};
+function _read(k,fb){try{var raw=localStorage.getItem(k);return raw===null?fb:JSON.parse(raw)}catch(e){return fb}}
+function _write(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+var AVATAR_POOL=['🦊','🐼','🐯','🐰','🐸','🐵','🐨','🦁'];
+var Storage={
+getAnonUid:function(){var uid;try{uid=localStorage.getItem(KEYS.anonUid)}catch(e){}if(!uid){uid=uuid();try{localStorage.setItem(KEYS.anonUid,uid)}catch(e){}}return uid},
+getUser:function(){var u=_read(KEYS.user,null);if(u)return u;var avatar=AVATAR_POOL[Math.floor(Math.random()*AVATAR_POOL.length)];u={id:Storage.getAnonUid(),nickname:'小魔方手',avatar:avatar,isPremium:false,createdAt:Date.now()};_write(KEYS.user,u);return u},
+updateUser:function(patch){var u=Storage.getUser();var n=Object.assign({},u,patch);_write(KEYS.user,n);return n},
+getAvatarPool:function(){return AVATAR_POOL.slice()},
+getAllProgress:function(){return _read(KEYS.progress,{})},
+getProgress:function(fid){return Storage.getAllProgress()[fid]},
+upsertProgress:function(fid,patch){var all=Storage.getAllProgress();var prev=all[fid]||{formulaId:fid,status:'new',practiceCount:0,lastPracticedAt:0,successRate:0};var next=Object.assign({},prev,patch,{formulaId:fid});all[fid]=next;_write(KEYS.progress,all);return next},
+recordPractice:function(fid,success){var prev=Storage.getProgress(fid)||{formulaId:fid,status:'new',practiceCount:0,lastPracticedAt:0,successRate:0};var nextCount=prev.practiceCount+1;var prevSucc=Math.round(prev.successRate*prev.practiceCount);var nextSucc=prevSucc+(success?1:0);var rate=nextCount>0?nextSucc/nextCount:0;var status=prev.status==='new'?'learning':prev.status;if(nextCount>=3&&rate>=0.8)status='mastered';return Storage.upsertProgress(fid,{practiceCount:nextCount,lastPracticedAt:Date.now(),successRate:rate,status:status})},
+markMastered:function(fid){return Storage.upsertProgress(fid,{status:'mastered',lastPracticedAt:Date.now()})},
+markLearning:function(fid){return Storage.upsertProgress(fid,{status:'learning'})},
+getSessions:function(){return _read(KEYS.sessions,[])},
+addSession:function(s){var all=Storage.getSessions();all.push(s);_write(KEYS.sessions,all.slice(-200))},
+getDailyCounts:function(days){var map={},now=new Date(),order=[];for(var i=days-1;i>=0;i--){var d=new Date(now);d.setDate(now.getDate()-i);var key=d.toISOString().slice(0,10);map[key]=0;order.push(key)}var sess=Storage.getSessions();for(var j=0;j<sess.length;j++){if(map.hasOwnProperty(sess[j].date))map[sess[j].date]+=sess[j].total}return order.map(function(k){return{date:k,count:map[k]}})},
+getStreak:function(){var sessions=Storage.getSessions();if(sessions.length===0)return 0;var set={};for(var i=0;i<sessions.length;i++)set[sessions[i].date]=true;var streak=0,cur=new Date();if(!set[cur.toISOString().slice(0,10)])cur.setDate(cur.getDate()-1);while(set[cur.toISOString().slice(0,10)]){streak++;cur.setDate(cur.getDate()-1)}return streak},
+getAchievements:function(){return _read(KEYS.achievements,[])},
+setAchievements:function(list){_write(KEYS.achievements,list)},
+unlockAchievement:function(id){var all=Storage.getAchievements();for(var i=0;i<all.length;i++){if(all[i].id===id&&!all[i].unlocked){all[i]=Object.assign({},all[i],{unlocked:true,unlockedAt:Date.now()});_write(KEYS.achievements,all);return}}},
+resetAll:function(){try{for(var k in KEYS)localStorage.removeItem(KEYS[k])}catch(e){}}
+};
+var ACHIEVEMENT_DEFS=[
+{id:'first_practice',name:'初试身手',description:'完成第 1 次练习',emoji:'🥉'},
+{id:'practice_10',name:'勤奋学习',description:'累计练习 10 题',emoji:'📚'},
+{id:'practice_50',name:'熟能生巧',description:'累计练习 50 题',emoji:'🎯'},
+{id:'mastered_10',name:'十公式小手',description:'掌握 10 个公式',emoji:'⭐'},
+{id:'mastered_oll',name:'OLL 全掌握',description:'掌握全部 57 个 OLL',emoji:'🏆'},
+{id:'mastered_pll',name:'PLL 全掌握',description:'掌握全部 21 个 PLL',emoji:'👑'},
+{id:'streak_7',name:'一周坚持',description:'连续 7 天练习',emoji:'🔥'},
+{id:'streak_30',name:'一月不断',description:'连续 30 天练习',emoji:'🚀'}
+];
+function ensureAchievementsInit(){var existing=Storage.getAchievements();if(existing.length===0){var seed=ACHIEVEMENT_DEFS.map(function(d){return Object.assign({},d,{unlocked:false})});Storage.setAchievements(seed);return seed}var byId={};for(var i=0;i<existing.length;i++)byId[existing[i].id]=existing[i];var merged=ACHIEVEMENT_DEFS.map(function(d){return byId[d.id]||Object.assign({},d,{unlocked:false})});Storage.setAchievements(merged);return merged}
+function checkAndUnlock(){ensureAchievementsInit();var sessions=Storage.getSessions();var totalPractice=sessions.reduce(function(s,x){return s+x.total},0);var allP=Storage.getAllProgress(),progress=[];for(var k in allP)progress.push(allP[k]);var mastered=progress.filter(function(p){return p.status==='mastered'});var masteredOll=mastered.filter(function(p){return p.formulaId.indexOf('oll-')===0}).length;var masteredPll=mastered.filter(function(p){return p.formulaId.indexOf('pll-')===0}).length;var streak=Storage.getStreak();var checks=[['first_practice',sessions.length>=1],['practice_10',totalPractice>=10],['practice_50',totalPractice>=50],['mastered_10',mastered.length>=10],['mastered_oll',masteredOll>=57],['mastered_pll',masteredPll>=21],['streak_7',streak>=7],['streak_30',streak>=30]];var unlockedNow=[];for(var i=0;i<checks.length;i++){var id=checks[i][0],ok=checks[i][1];if(ok){var all=Storage.getAchievements();for(var j=0;j<all.length;j++){if(all[j].id===id&&!all[j].unlocked){Storage.unlockAchievement(id);unlockedNow.push(id);break}}}}return unlockedNow}
+function track(event,props){try{console.log('[analytics]',Object.assign({event:event,uid:Storage.getAnonUid(),ts:Date.now()},props||{}))}catch(e){}}
+var FREE_OLL_NUMBERS={27:1,26:1,21:1,22:1,23:1,24:1,25:1,44:1,45:1,33:1};
+var FREE_PLL_CODES={Ua:1,Ub:1,H:1,Z:1,Aa:1};
+function ollEntry(number,name,sub,alg,diff,alts,tip){return{id:'oll-'+number,category:'OLL',subCategory:sub,number:number,name:name,algorithm:alg,alternativeAlgorithms:alts||[],setupMoves:invertAlgorithm(alg),difficulty:diff,isPremium:!FREE_OLL_NUMBERS[number],tip:tip||''}}
+function pllEntry(number,code,name,sub,alg,diff,alts,tip){return{id:'pll-'+code.toLowerCase(),category:'PLL',subCategory:sub,number:number,name:name,algorithm:alg,alternativeAlgorithms:alts||[],setupMoves:invertAlgorithm(alg),difficulty:diff,isPremium:!FREE_PLL_CODES[code],tip:tip||''}}
+var OLL_FORMULAS=[];var PLL_FORMULAS=[];var ALL_FORMULAS=[];
+function buildFormulaIndex(){ALL_FORMULAS=OLL_FORMULAS.concat(PLL_FORMULAS)}
+function getFormulaById(id){for(var i=0;i<ALL_FORMULAS.length;i++)if(ALL_FORMULAS[i].id===id)return ALL_FORMULAS[i]}
+function getFormulasByCategory(cat){return ALL_FORMULAS.filter(function(f){return f.category===cat})}
+function getSubCategories(cat){var seen={},out=[];for(var i=0;i<ALL_FORMULAS.length;i++){var f=ALL_FORMULAS[i];if(f.category===cat&&!seen[f.subCategory]){seen[f.subCategory]=true;out.push(f.subCategory)}}return out}
+function getAdjacentFormulas(id){var f=getFormulaById(id);if(!f)return{};var list=getFormulasByCategory(f.category).slice().sort(function(a,b){return a.number-b.number});var idx=-1;for(var i=0;i<list.length;i++)if(list[i].id===id){idx=i;break}return{prev:idx>0?list[idx-1]:null,next:(idx>=0&&idx<list.length-1)?list[idx+1]:null}}
+var CUBING_STATE={loaded:false,loading:false,failed:false,queue:[]};
+function loadCubing(){if(CUBING_STATE.loaded||CUBING_STATE.failed)return Promise.resolve(CUBING_STATE.loaded);if(CUBING_STATE.loading)return new Promise(function(res){CUBING_STATE.queue.push(res)});CUBING_STATE.loading=true;return new Promise(function(resolve){var s=document.createElement('script');s.type='module';s.textContent="import('https://cdn.jsdelivr.net/npm/cubing@0.55.0/twisty.js').then(function(){window.__cubingReady(true);}).catch(function(){window.__cubingReady(false);});";window.__cubingReady=function(ok){CUBING_STATE.loaded=!!ok;CUBING_STATE.failed=!ok;CUBING_STATE.loading=false;resolve(ok);CUBING_STATE.queue.forEach(function(r){r(ok)});CUBING_STATE.queue=[]};setTimeout(function(){if(CUBING_STATE.loading)window.__cubingReady(false)},8000);document.head.appendChild(s)})}
+function mountCube(host,opts){if(!host)return;opts=opts||{};var size=opts.size||240;host.innerHTML='';host.style.minHeight=Math.min(size,280)+'px';function renderFallback(){var el=document.createElement('div');el.className='cube-fallback';el.innerHTML='<div style="font-size:2rem">🧊</div><div style="margin-top:6px">'+escapeHtml(opts.alg||'—')+'</div>';host.appendChild(el)}if(CUBING_STATE.failed){renderFallback();return}var ph=document.createElement('div');ph.className='cube-fallback';ph.textContent='魔方加载中…';host.appendChild(ph);loadCubing().then(function(ok){if(!ok){host.innerHTML='';renderFallback();return}host.innerHTML='';var p=document.createElement('twisty-player');p.setAttribute('puzzle','3x3x3');p.setAttribute('visualization',opts.visualization||'3D');p.setAttribute('background',opts.background||'none');p.setAttribute('control-panel',opts.controlPanel||'bottom-row');p.setAttribute('hint-facelets',opts.hintFacelets||'floating');p.setAttribute('back-view',opts.backView||'none');p.setAttribute('tempo-scale',String(opts.tempoScale||1));if(opts.alg)p.setAttribute('alg',opts.alg);if(opts.setupAlg)p.setAttribute('experimental-setup-alg',opts.setupAlg);p.style.width=size+'px';p.style.height=size+'px';p.style.maxWidth='100%';host.appendChild(p)})}
+function showModal(html,onClose){var root=document.getElementById('modal-root');root.innerHTML='<div class="modal-mask" id="__mm"><div class="modal" id="__md">'+html+'</div></div>';var mask=document.getElementById('__mm');function close(){root.innerHTML='';if(typeof onClose==='function')onClose()}mask.addEventListener('click',function(e){if(e.target===mask)close()});window.__closeModal=close;return close}
+function showPremiumModal(opts){opts=opts||{};track('premium_modal_show',{formulaId:opts.formulaId,feature:opts.feature});var html='<div class="center" style="font-size:3rem">🔒</div><h2 class="center mt-3">这个是 Pro 内容</h2><p class="center t-muted mt-2">解锁全部 78 个公式、计时挑战、弱项强化与详细数据报告。</p><div class="mt-6 flex" style="flex-direction:column;gap:12px"><a href="#/pricing" class="btn btn-primary" id="__pmGo">查看 Pro 详情</a><button class="btn btn-ghost" id="__pmClose">稍后再说</button></div>';var close=showModal(html,opts.onClose);document.getElementById('__pmClose').addEventListener('click',close);document.getElementById('__pmGo').addEventListener('click',function(){close()})}
+function parseHash(){var h=location.hash||'#/';if(h.charAt(0)==='#')h=h.slice(1);if(!h)h='/';return h}
+function setActiveNav(path){var anchors=document.querySelectorAll('#nav a');for(var i=0;i<anchors.length;i++){var m=anchors[i].getAttribute('data-match');var active=(m==='/')?(path==='/'):(path.indexOf(m)===0);anchors[i].classList.toggle('active',active)}}
+function showView(id){var views=document.querySelectorAll('.view');for(var i=0;i<views.length;i++)views[i].classList.toggle('active',views[i].id===id);window.scrollTo(0,0)}
+function router(){var path=parseHash();setActiveNav(path);if(path==='/'){showView('view-home');return}if(path==='/learn'){showView('view-learn');if(window.renderLearn)renderLearn();return}var m=path.match(/^\/learn\/(OLL|PLL)\/([\w-]+)$/);if(m){showView('view-detail');if(window.renderDetail)renderDetail(m[2]);return}if(path==='/practice'){showView('view-practice');if(window.renderPractice)renderPractice();return}if(path==='/dashboard'){showView('view-dashboard');if(window.renderDashboard)renderDashboard();return}if(path==='/pricing'){showView('view-pricing');if(window.renderPricing)renderPricing();return}showView('view-404')}
+window.addEventListener('hashchange',router);
+document.getElementById('year').textContent=new Date().getFullYear();
+if(!location.hash)location.hash='#/';
+ensureAchievementsInit();Storage.getUser();
+</script>
 
-          <section class="mt-16 grid grid-3">
-            <div class="card center">
-              <div class="text-5xl">📚</div>
-              <h3 class="mt-2">系统化公式库</h3>
-              <p class="mt-2 t-muted">57 OLL + 21 PLL 全收录，按图形分类，一眼看懂。</p>
-            </div>
-            <div class="card center">
-              <div class="text-5xl">🎯</div>
-              <h3 class="mt-2">智能练习跟踪</h3>
-              <p class="mt-2 t-muted">闪卡、计时挑战、弱项重点推荐，练难点不重复。</p>
-            </div>
-            <div class="card center">
-              <div class="text-5xl">🏆</div>
-              <h3 class="mt-2">闯关式成就</h3>
-              <p class="mt-2 t-muted">连续学习、掌握里程碑、徽章增加坚持习惯。</p>
-            </div>
-          </section>
+<script>
+/* OLL 1-30 */
+OLL_FORMULAS.push(
+ollEntry(1,'Dot 1','Dot',"(R U2') (R2' F R F') U2' (R' F R F')",3),
+ollEntry(2,'Dot 2','Dot',"F (R U R' U') F' f (R U R' U') f'",3),
+ollEntry(3,'Dot 3','Dot',"f (R U R' U') f' U' F (R U R' U') F'",3),
+ollEntry(4,'Dot 4','Dot',"f (R U R' U') f' U F (R U R' U') F'",3),
+ollEntry(5,'Square 1','Square',"(r' U2 R U R' U r)",2),
+ollEntry(6,'Square 2','Square',"(r U2 R' U' R U' r')",2),
+ollEntry(7,'Lightning 1','Lightning',"(r U R' U R U2 r')",2),
+ollEntry(8,'Lightning 2','Lightning',"(r' U' R U' R' U2 r)",2),
+ollEntry(9,'Fish (Kite) 1','Fish',"(R U R' U') R' F (R2 U R' U') F'",3),
+ollEntry(10,'Fish (Kite) 2','Fish',"(R U R' U) (R' F R F') (R U2 R')",3),
+ollEntry(11,'Lightning 3','Lightning',"r' (R2 U R' U R U2 R') U M'",3),
+ollEntry(12,'Lightning 4','Lightning',"M' (R' U' R U' R' U2 R) U' M",3),
+ollEntry(13,'Knight 1','Knight',"(r U' r') (U' r U r') y' (R' U R)",3),
+ollEntry(14,'Knight 2','Knight',"(R' F R) (U R' F' R) (F U' F')",3),
+ollEntry(15,'Knight 3','Knight',"(r' U' r) (R' U' R U) (r' U r)",3),
+ollEntry(16,'Knight 4','Knight',"(r U r') (R U R' U') (r U' r')",3),
+ollEntry(17,'Awkward 1','Awkward',"(R U R' U) (R' F R F') U2 (R' F R F')",3),
+ollEntry(18,'Awkward 2','Awkward',"F (R U R' U) y' (R' U2) (R' F R F')",3),
+ollEntry(19,'Awkward 3','Awkward',"M U (R U R' U') M' (R' F R F')",3),
+ollEntry(20,'Double Sune','Awkward',"M U (R U R' U') M2 (U R U' r')",3),
+ollEntry(21,'Cross / H','OCLL',"(R U2 R' U' R U R' U' R U' R')",1,["F (R U R' U')3 F'"],'双 Sune 合并'),
+ollEntry(22,'Pi','OCLL',"R U2' R2' U' R2 U' R2' U2' R",1,["f (R U R' U') f' F (R U R' U') F'"]),
+ollEntry(23,'Headlights','OCLL',"R2' D' R U2 R' D R U2 R",1,["R2 D (R' U2 R) D' (R' U2 R')"]),
+ollEntry(24,'Bowtie','OCLL',"(r U R' U') (r' F R F')",1),
+ollEntry(25,'Bowtie 反 / Diagonal','OCLL',"F' (r U R' U') r' F R",1,["x' (R U R' D) (R U' R' D') x"]),
+ollEntry(26,'Anti-Sune','OCLL',"(R U2 R' U' R U' R')",1,["L' U' L U' L' U2 L"],'左前角朝外'),
+ollEntry(27,'Sune','OCLL',"(R U R' U R U2 R')",1,["L' U2 L U L' U L"],'最常用 OLL'),
+ollEntry(28,'Block 1','Block',"(r U R' U') M (U R U' R')",2),
+ollEntry(29,'Block 2','Block',"(R U R' U') (R U' R') (F' U' F) (R U R')",3),
+ollEntry(30,'Block 3','Block',"F R' F (R2 U' R' U') (R U R') F2",3)
+);
+</script>
 
-          <section class="mt-16 card flex items-center justify-between gap-4" style="flex-wrap:wrap">
-            <div>
-              <h3>⏳ Pro 版即将上线</h3>
-              <p class="t-muted mt-1">解锁全部公式、计时挑战、弱项 AI 推荐。</p>
-            </div>
-            <a href="#/pricing" data-nav class="btn btn-secondary">了解详情</a>
-          </section>
+<script>
+/* OLL 31-57 */
+OLL_FORMULAS.push(
+ollEntry(31,'P-shape 1','P-shape',"(R' U' F) (U R U' R') F' R",2),
+ollEntry(32,'P-shape 2','P-shape',"(S R U R' U') (R' F R f')",2),
+ollEntry(33,'T-shape 1','T-shape',"(R U R' U') (R' F R F')",1,[],'熟悉 sexy + sledge 的组合'),
+ollEntry(34,'C-shape 1','C-shape',"(R U R' U') B' (R' F R F') B",2),
+ollEntry(35,'Fish 3','Fish',"(R U2') (R2' F R F') (R U2' R')",2),
+ollEntry(36,'W-shape 1','W-shape',"(R' U' R U' R' U R U) l U' R' U x",3),
+ollEntry(37,'Fish 4 (Mounted)','Fish',"F (R U' R' U') (R U R' F')",2),
+ollEntry(38,'W-shape 2','W-shape',"(R U R' U) (R U' R' U') (R' F R F')",2),
+ollEntry(39,'Big Lightning 1','Lightning',"(L F') (L' U' L U) F U' L'",3),
+ollEntry(40,'Big Lightning 2','Lightning',"(R' F) (R U R' U') F' U R",3),
+ollEntry(41,'Awkward Fish 1','Awkward',"(R U R' U R U2' R') F (R U R' U') F'",3),
+ollEntry(42,'Awkward Fish 2','Awkward',"(R' U' R U' R' U2 R) F (R U R' U') F'",3),
+ollEntry(43,'P-shape 3','P-shape',"f' (L' U' L U) f",2),
+ollEntry(44,'P-shape 4','P-shape',"f (R U R' U') f'",1,[],'镜像 OLL 45'),
+ollEntry(45,'T-shape 2','T-shape',"F (R U R' U') F'",1,[],'万能 OLL 之一'),
+ollEntry(46,'L-shape (Seein\u2019 Headlights)','L-shape',"R' U' (R' F R F') U R",2),
+ollEntry(47,'L-shape 1','L-shape',"F' (L' U' L U) (L' U' L U) F",2),
+ollEntry(48,'L-shape 2','L-shape',"F (R U R' U') (R U R' U') F'",2),
+ollEntry(49,'L-shape 3','L-shape',"R B' R2 F R2 B R2 F' R",3),
+ollEntry(50,'L-shape 4','L-shape',"R' F R2 B' R2' F' R2 B R'",3),
+ollEntry(51,'Line 1','Line',"f (R U R' U') (R U R' U') f'",2),
+ollEntry(52,'Line 2','Line',"(R U R' U) R d' R U' R' F'",2),
+ollEntry(53,'L-shape 5','L-shape',"(r' U' R U' R' U R U' R' U2 r)",3),
+ollEntry(54,'L-shape 6','L-shape',"(r U R' U R U' R' U R U2' r')",3),
+ollEntry(55,'Line 3','Line',"R' F (R U R U' R2' F') R2 U' R' (U R U R')",3),
+ollEntry(56,'Line 4','Line',"(r U r') (U R U' R') (U R U' R') (r U' r')",3),
+ollEntry(57,'H (Edges Only)','OCLL',"(R U R' U') M' (U R U' r')",1,["(R U R' U R U' R') M' (U R U' r')"])
+);
+</script>
 
-          <footer class="site-footer">
-            © <span id="year"></span> 小魔方大师 · 面向少年与魔方机构
-          </footer>
-        </div>
-      </section>
+<script>
+/* PLL */
+PLL_FORMULAS.push(
+pllEntry(1,'Aa','Aa Perm','Corners Only',"x (R' U R') D2 (R U' R') D2 R2 x'",1,["y' x' (R2 D2) (R' U' R) D2 (R' U R')"],'右后顺时针三角换'),
+pllEntry(2,'Ab','Ab Perm','Corners Only',"x R2' D2 (R U R') D2 (R U' R) x'",1,["y2 x (R2 D2 R U R' D2 R U' R)"]),
+pllEntry(3,'E','E Perm','Corners Only',"x' (R U' R' D) (R U R' D') (R U R' D) (R U' R' D') x",3),
+pllEntry(17,'Ua','Ua Perm','Edges Only',"(R U' R U R U) (R U' R' U' R2)",1,["M2 U M U2 M' U M2"],'前棱逆时针三换'),
+pllEntry(18,'Ub','Ub Perm','Edges Only',"R2 U (R U R' U') (R' U' R' U R')",1,["M2 U' M U2 M' U' M2"],'前棱顺时针三换'),
+pllEntry(9,'H','H Perm','Edges Only',"M2 U M2 U2 M2 U M2",1,[],'对面棱对换'),
+pllEntry(21,'Z','Z Perm','Edges Only',"M' U M2 U M2 U M' U2 M2",1,["M2 U M2 U M' U2 M2 U2 M'"],'相邻棱对换'),
+pllEntry(10,'Ja','Ja Perm','Adjacent Swap',"(R' U L' U2) (R U' R' U2 R L)",2,["x R2 F R F' R U2 r' U r U2 x'"]),
+pllEntry(11,'Jb','Jb Perm','Adjacent Swap',"(R U R' F') (R U R' U') R' F R2 U' R'",2),
+pllEntry(16,'T','T Perm','Adjacent Swap',"(R U R' U') (R' F R2 U' R' U') (R U R' F')",1,[],'最常用 PLL'),
+pllEntry(4,'F','F Perm','Adjacent Swap',"(R' U' F') (R U R' U') (R' F R2 U' R' U') (R U R' U R)",3),
+pllEntry(14,'Ra','Ra Perm','Adjacent Swap',"(R U' R' U') (R U R D) (R' U' R D') R' U2 R'",3),
+pllEntry(15,'Rb','Rb Perm','Adjacent Swap',"(R' U2 R U2') R' F (R U R' U') R' F' R2",3),
+pllEntry(5,'Ga','Ga Perm','G Perms',"R2 U (R' U R' U') (R U' R2) D U' (R' U R) D'",3),
+pllEntry(6,'Gb','Gb Perm','G Perms',"(R' U' R) U D' (R2 U R' U) (R U' R U' R2 D)",3),
+pllEntry(7,'Gc','Gc Perm','G Perms',"R2' U' (R U' R U) (R' U R2 D') (U R U' R') D",3),
+pllEntry(8,'Gd','Gd Perm','G Perms',"(R U R') U' D (R2 U' R U') (R' U R' U R2) D'",3),
+pllEntry(12,'Na','Na Perm','Diagonal Swap',"(R U R' U) (R U R' F') (R U R' U') (R' F R2 U' R' U2 R U' R')",3,["z U R' D R2 U' R D' U R' D R2 U' R D' z'"]),
+pllEntry(13,'Nb','Nb Perm','Diagonal Swap',"(R' U R U') (R' F' U' F) (R U R' F) R' F' (R U' R)",3),
+pllEntry(19,'V','V Perm','Diagonal Swap',"(R' U R' U') y (R' F' R2 U') (R' U R' F) R F",3),
+pllEntry(20,'Y','Y Perm','Diagonal Swap',"F R U' R' U' (R U R' F') (R U R' U') (R' F R F')",2)
+);
+</script>
 
-      <!-- 学习 / 公式库 -->
-      <section id="view-learn" class="view">
-        <div class="container py-6">
-          <h1>公式库</h1>
-          <p class="t-muted mt-1">点击公式查看动画详情。锁号 🔒 = Pro 专享。</p>
+<script>
+/* Learn view */
+(function(){
+var STATE={cat:'OLL',sub:'ALL',keyword:''};
+function statusBadge(s){if(s==='mastered')return '<span class="badge badge-mastered">✓ 已掌握</span>';if(s==='learning')return '<span class="badge badge-learning">学习中</span>';return '<span class="badge badge-new">未练习</span>'}
+function diffStars(d){return '<span class="t-muted text-xs" title="难度">'+'★'.repeat(d)+'☆'.repeat(3-d)+'</span>'}
+function maskAlg(alg,isPremium,isPremiumUser){if(!isPremium||isPremiumUser)return escapeHtml(alg);return '<span class="t-muted">🔒 解锁后查看公式</span>'}
+function cardHtml(f){var user=Storage.getUser();var prog=Storage.getProgress(f.id);var status=(prog&&prog.status)||'new';var locked=f.isPremium&&!user.isPremium;var href=locked?'javascript:void(0)':'#/learn/'+f.category+'/'+f.id;return '<a class="card hover formula-card" href="'+href+'" data-fid="'+escapeHtml(f.id)+'" data-locked="'+(locked?'1':'0')+'"><div class="corner">'+(f.isPremium?'<span class="pill pill-gray">🔒 Pro</span>':'<span class="pill pill-green">免费</span>')+'</div><div class="flex items-center gap-3"><div class="text-2xl font-bold t-blue">#'+f.number+'</div><div class="flex-1"><div class="font-semibold">'+escapeHtml(f.name)+'</div><div class="text-xs t-muted">'+escapeHtml(f.subCategory)+'</div></div></div><div class="mt-3 alg-text break-words" style="font-size:.95rem">'+maskAlg(f.algorithm,f.isPremium,user.isPremium)+'</div><div class="mt-3 flex items-center justify-between">'+statusBadge(status)+diffStars(f.difficulty)+'</div></a>'}
+function applyFilter(){var list=getFormulasByCategory(STATE.cat).slice().sort(function(a,b){return a.number-b.number});var kw=STATE.keyword.trim().toLowerCase();if(STATE.sub!=='ALL')list=list.filter(function(f){return f.subCategory===STATE.sub});if(kw)list=list.filter(function(f){return String(f.number).indexOf(kw)>=0||f.name.toLowerCase().indexOf(kw)>=0||f.subCategory.toLowerCase().indexOf(kw)>=0});return list}
+function renderSubs(){var box=document.getElementById('learn-subs');if(!box)return;var subs=getSubCategories(STATE.cat);var html='<button class="chip '+(STATE.sub==='ALL'?'active':'')+'" data-sub="ALL">全部</button>';for(var i=0;i<subs.length;i++)html+='<button class="chip '+(STATE.sub===subs[i]?'active':'')+'" data-sub="'+escapeHtml(subs[i])+'">'+escapeHtml(subs[i])+'</button>';box.innerHTML=html;var btns=box.querySelectorAll('button');for(var j=0;j<btns.length;j++)btns[j].addEventListener('click',function(){STATE.sub=this.getAttribute('data-sub');renderSubs();renderListInner()})}
+function renderListInner(){var list=document.getElementById('learn-list');if(!list)return;var rows=applyFilter();if(rows.length===0){list.innerHTML='<div class="col-span-full center t-muted py-10">没有匹配的公式</div>';return}var html='';for(var i=0;i<rows.length;i++)html+=cardHtml(rows[i]);list.innerHTML=html;var cards=list.querySelectorAll('.formula-card[data-locked="1"]');for(var k=0;k<cards.length;k++)cards[k].addEventListener('click',function(e){e.preventDefault();showPremiumModal({formulaId:this.getAttribute('data-fid'),feature:'view_formula'})});track('formula_view',{category:STATE.cat,sub:STATE.sub,count:rows.length})}
+function bindTabs(){var tabs=document.getElementById('learn-tabs');if(!tabs||tabs.__bound)return;tabs.__bound=true;var btns=tabs.querySelectorAll('button');for(var i=0;i<btns.length;i++)btns[i].addEventListener('click',function(){STATE.cat=this.getAttribute('data-cat');STATE.sub='ALL';var bs=tabs.querySelectorAll('button');for(var k=0;k<bs.length;k++)bs[k].classList.toggle('active',bs[k]===this);renderSubs();renderListInner()})}
+function bindSearch(){var inp=document.getElementById('learn-search');if(!inp||inp.__bound)return;inp.__bound=true;inp.addEventListener('input',function(){STATE.keyword=this.value;renderListInner()})}
+window.renderLearn=function(){bindTabs();bindSearch();renderSubs();renderListInner()};
+})();
+</script>
 
-          <div class="mt-4 tabs" id="learn-tabs">
-            <button data-cat="OLL" class="active">OLL · 57 个</button>
-            <button data-cat="PLL">PLL · 21 个</button>
-          </div>
+<script>
+/* Detail view */
+(function(){
+function statusBadge(s){if(s==='mastered')return '<span class="badge badge-mastered">✓ 已掌握</span>';if(s==='learning')return '<span class="badge badge-learning">学习中</span>';return '<span class="badge badge-new">未练习</span>'}
+function diffStars(d){return '★'.repeat(d)+'☆'.repeat(3-d)}
+window.renderDetail=function(id){var root=document.getElementById('detail-root');if(!root)return;var f=getFormulaById(id);if(!f){root.innerHTML='<div class="center py-10"><div class="text-5xl">🧊</div><h2 class="mt-4">没找到这个公式</h2><a href="#/learn" class="btn btn-primary mt-6">返回公式库</a></div>';return}var user=Storage.getUser();if(f.isPremium&&!user.isPremium){root.innerHTML='<div class="center py-10"><div class="text-5xl">🔒</div><h2 class="mt-4">这个公式是 Pro 内容</h2><p class="t-muted mt-2">解锁后即可查看动画、算法和练习。</p><div class="mt-6 flex gap-3 justify-center" style="flex-wrap:wrap"><a href="#/pricing" class="btn btn-primary">查看 Pro</a><a href="#/learn" class="btn btn-ghost">返回公式库</a></div></div>';showPremiumModal({formulaId:id,feature:'detail'});return}var prog=Storage.getProgress(id);var status=(prog&&prog.status)||'new';var adj=getAdjacentFormulas(id);var altsHtml='';if(f.alternativeAlgorithms&&f.alternativeAlgorithms.length){altsHtml='<div class="mt-4"><div class="text-sm t-muted mb-2">备选算法</div><div class="grid">'+f.alternativeAlgorithms.map(function(a){return '<button class="card alg-text break-words copy-btn" data-alg="'+escapeHtml(a)+'" style="text-align:left;font-size:1rem">'+escapeHtml(a)+'</button>'}).join('')+'</div></div>'}var tipHtml=f.tip?'<p class="t-muted mt-2 text-sm">💡 '+escapeHtml(f.tip)+'</p>':'';root.innerHTML='<a href="#/learn" class="t-muted text-sm">← 返回公式库</a><div class="mt-3 flex items-center justify-between gap-3" style="flex-wrap:wrap"><div><div class="flex items-center gap-3"><div class="text-3xl font-bold t-blue">#'+f.number+'</div><h1 style="font-size:1.75rem">'+escapeHtml(f.name)+'</h1></div><div class="mt-2 flex items-center gap-3 text-sm t-muted"><span>'+escapeHtml(f.category)+' · '+escapeHtml(f.subCategory)+'</span><span title="难度">'+diffStars(f.difficulty)+'</span>'+statusBadge(status)+'</div></div></div><div class="mt-4 card"><div class="cube-host lg" id="detail-cube"></div><div class="mt-3 center text-xs t-muted">点击 ▶ 播放，或拖动魔方查看。</div></div><div class="mt-4 card"><div class="text-sm t-muted">主算法</div><button class="alg-text mt-2 break-words copy-btn" data-alg="'+escapeHtml(f.algorithm)+'" style="text-align:left;width:100%;display:block;cursor:pointer">'+escapeHtml(f.algorithm)+'</button><div class="mt-2 text-xs t-muted">点击算法即可复制到剪贴板</div>'+tipHtml+altsHtml+'</div><div class="mt-4 grid grid-2">'+(status==='mastered'?'<button class="btn btn-ghost" id="btn-relearn">重新学习</button>':'<button class="btn btn-primary" id="btn-mastered">✓ 标记已掌握</button>')+'<a href="#/practice" class="btn btn-secondary">🎯 去练习</a></div><div class="mt-6 flex items-center justify-between">'+(adj.prev?'<a href="#/learn/'+adj.prev.category+'/'+adj.prev.id+'" class="t-blue">← #'+adj.prev.number+' '+escapeHtml(adj.prev.name)+'</a>':'<span></span>')+(adj.next?'<a href="#/learn/'+adj.next.category+'/'+adj.next.id+'" class="t-blue">#'+adj.next.number+' '+escapeHtml(adj.next.name)+' →</a>':'<span></span>')+'</div>';mountCube(document.getElementById('detail-cube'),{alg:f.algorithm,setupAlg:f.setupMoves,size:280,tempoScale:1});var copyBtns=root.querySelectorAll('.copy-btn');for(var i=0;i<copyBtns.length;i++)copyBtns[i].addEventListener('click',function(){var a=this.getAttribute('data-alg');copyToClipboard(a).then(function(ok){toast(ok?'已复制：'+a:'复制失败');track('formula_copy',{formulaId:id,alg:a})})});var bM=document.getElementById('btn-mastered');if(bM)bM.addEventListener('click',function(){Storage.markMastered(id);checkAndUnlock();track('formula_mastered',{formulaId:id});toast('🎉 已标记为已掌握');renderDetail(id)});var bR=document.getElementById('btn-relearn');if(bR)bR.addEventListener('click',function(){Storage.markLearning(id);toast('已切回「学习中」');renderDetail(id)});track('formula_open',{formulaId:id})};
+})();
+</script>
 
-          <div class="mt-4 chips" id="learn-subs"></div>
+<script>
+/* Practice view */
+(function(){
+var STATE={mode:null,deck:[],idx:0,success:0,fail:0,revealed:false,startTs:0};
+function buildDeck(mode){var user=Storage.getUser();var pool=ALL_FORMULAS.filter(function(f){return !f.isPremium||user.isPremium});if(mode==='oll')pool=pool.filter(function(f){return f.category==='OLL'});if(mode==='pll')pool=pool.filter(function(f){return f.category==='PLL'});if(mode==='weak'){pool=pool.slice().sort(function(a,b){var pa=Storage.getProgress(a.id),pb=Storage.getProgress(b.id);return (pa?pa.successRate:0)-(pb?pb.successRate:0)}).slice(0,15)}pool=pool.slice();for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=pool[i];pool[i]=pool[j];pool[j]=tmp}return pool.slice(0,Math.min(pool.length,mode==='weak'?15:10))}
+function renderPicker(){var root=document.getElementById('practice-root');var user=Storage.getUser();root.innerHTML='<h1>练习</h1><p class="t-muted mt-1">看公式 → 想一下 → 翻开看答案 → 自评。每组 10 题。</p><div class="mt-6 grid grid-2"><button class="card hover" data-mode="random" style="text-align:left"><div class="text-2xl">🎲</div><h3 class="mt-2">随机闪卡</h3><p class="t-muted mt-1">从已解锁的公式中随机抽 10 张。</p></button><button class="card hover" data-mode="oll" style="text-align:left"><div class="text-2xl">🟡</div><h3 class="mt-2">只练 OLL</h3><p class="t-muted mt-1">专攻顶层翻面。</p></button><button class="card hover" data-mode="pll" style="text-align:left"><div class="text-2xl">🔵</div><h3 class="mt-2">只练 PLL</h3><p class="t-muted mt-1">专攻顶层换位。</p></button><button class="card hover" data-mode="weak" style="text-align:left;position:relative">'+(user.isPremium?'':'<div class="corner" style="position:absolute;top:8px;right:8px"><span class="pill pill-gray">🔒 Pro</span></div>')+'<div class="text-2xl">🎯</div><h3 class="mt-2">弱项强化</h3><p class="t-muted mt-1">根据成功率自动推荐你最不熟的 15 张。</p></button></div>';var btns=root.querySelectorAll('button[data-mode]');for(var i=0;i<btns.length;i++)btns[i].addEventListener('click',function(){var mode=this.getAttribute('data-mode');if(mode==='weak'&&!Storage.getUser().isPremium){showPremiumModal({feature:'weak_practice'});return}startSession(mode)})}
+function startSession(mode){STATE.mode=mode;STATE.deck=buildDeck(mode);STATE.idx=0;STATE.success=0;STATE.fail=0;STATE.revealed=false;STATE.startTs=Date.now();if(STATE.deck.length===0){toast('当前没有可练习的公式');return}track('practice_start',{mode:mode,total:STATE.deck.length});renderCard()}
+function renderCard(){var root=document.getElementById('practice-root');if(STATE.idx>=STATE.deck.length){renderSummary();return}var f=STATE.deck[STATE.idx];var pct=Math.round(STATE.idx/STATE.deck.length*100);root.innerHTML='<div class="flex items-center justify-between"><button class="t-muted text-sm" id="btn-exit">← 退出</button><div class="text-sm t-muted">'+(STATE.idx+1)+' / '+STATE.deck.length+'</div></div><div class="progress-bar mt-3"><div style="width:'+pct+'%"></div></div><div class="mt-6 card flip-in"><div class="center text-sm t-muted">'+escapeHtml(f.category)+' · '+escapeHtml(f.subCategory)+'</div><h2 class="center mt-1">#'+f.number+' '+escapeHtml(f.name)+'</h2><div class="mt-4 cube-host lg" id="practice-cube"></div><div id="answer-box" class="mt-4 '+(STATE.revealed?'':'hidden')+'"><div class="text-sm t-muted">答案</div><div class="alg-text mt-1 break-words">'+escapeHtml(f.algorithm)+'</div></div>'+(STATE.revealed?'<div class="mt-6 grid grid-2"><button class="btn btn-ghost" id="btn-fail">✗ 还不熟</button><button class="btn btn-primary" id="btn-ok">✓ 会了</button></div>':'<button class="btn btn-secondary btn-block mt-6" id="btn-reveal">看答案</button>')+'</div><div class="mt-4 text-sm center t-muted">本组成绩：✓ '+STATE.success+' · ✗ '+STATE.fail+'</div>';mountCube(document.getElementById('practice-cube'),{alg:STATE.revealed?f.algorithm:'',setupAlg:f.setupMoves,size:240,tempoScale:1});var bExit=document.getElementById('btn-exit');bExit&&bExit.addEventListener('click',function(){if(confirm('要退出本组练习吗？已答题不会保存。'))renderPicker()});var bR=document.getElementById('btn-reveal');bR&&bR.addEventListener('click',function(){STATE.revealed=true;renderCard()});var bOk=document.getElementById('btn-ok');bOk&&bOk.addEventListener('click',function(){rate(true)});var bN=document.getElementById('btn-fail');bN&&bN.addEventListener('click',function(){rate(false)})}
+function rate(success){var f=STATE.deck[STATE.idx];Storage.recordPractice(f.id,success);if(success)STATE.success++;else STATE.fail++;STATE.idx++;STATE.revealed=false;renderCard()}
+function renderSummary(){var root=document.getElementById('practice-root');var total=STATE.deck.length;var rate=total>0?Math.round(STATE.success/total*100):0;var durSec=Math.round((Date.now()-STATE.startTs)/1000);Storage.addSession({date:todayStr(),mode:STATE.mode,total:total,success:STATE.success,durationSec:durSec});var unlocked=checkAndUnlock();track('practice_finish',{mode:STATE.mode,total:total,success:STATE.success,durationSec:durSec});var unlockedHtml='';if(unlocked.length){var names=unlocked.map(function(id){var a=ACHIEVEMENT_DEFS.filter(function(x){return x.id===id})[0];return a?(a.emoji+' '+a.name):id}).join('，');unlockedHtml='<div class="mt-4 card center" style="background:rgba(255,213,0,.2)">🎉 解锁成就：'+escapeHtml(names)+'</div>'}root.innerHTML='<div class="card center"><div class="text-5xl">🏁</div><h2 class="mt-3">本组结束！</h2><div class="mt-4 grid grid-3"><div><div class="text-2xl font-bold t-blue">'+total+'</div><div class="text-xs t-muted">总题数</div></div><div><div class="text-2xl font-bold t-green">'+STATE.success+'</div><div class="text-xs t-muted">会了</div></div><div><div class="text-2xl font-bold" style="color:var(--red)">'+STATE.fail+'</div><div class="text-xs t-muted">还不熟</div></div></div><div class="mt-4 text-sm t-muted">正确率 '+rate+'% · 用时 '+durSec+' 秒</div></div>'+unlockedHtml+'<div class="mt-4 grid grid-2"><button class="btn btn-primary" id="btn-again">再来一组</button><a href="#/dashboard" class="btn btn-ghost">查看仪表盘</a></div>';document.getElementById('btn-again').addEventListener('click',function(){startSession(STATE.mode)})}
+window.renderPractice=function(){renderPicker()};
+})();
+</script>
 
-          <input id="learn-search" class="input mt-4" placeholder="搜索编号或名称，如 27、Sune、Ua…" />
+<script>
+/* Dashboard view */
+(function(){
+function progressRingSvg(percent,size,label,val){size=size||96;var stroke=10,r=(size-stroke)/2,c=2*Math.PI*r;var off=c*(1-Math.max(0,Math.min(1,percent)));return '<div class="ring-wrap" style="width:'+size+'px;height:'+size+'px"><svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'"><circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r+'" fill="none" stroke="#E5E7EB" stroke-width="'+stroke+'" /><circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r+'" fill="none" stroke="#FFD500" stroke-width="'+stroke+'" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" transform="rotate(-90 '+(size/2)+' '+(size/2)+')" style="transition:stroke-dashoffset .5s ease" /></svg><div class="ring-text"><div class="val">'+val+'</div><div class="lbl">'+escapeHtml(label)+'</div></div></div>'}
+function heatmapHtml(days){days=days||90;var data=Storage.getDailyCounts(days);function level(c){if(c===0)return 0;if(c<5)return 1;if(c<15)return 2;if(c<30)return 3;return 4}var cells=data.map(function(d){return '<div class="cell l'+level(d.count)+'" title="'+d.date+'：'+d.count+' 次"></div>'}).join('');return '<div class="overflow-x-auto"><div class="heatmap">'+cells+'</div></div><div class="heatmap-legend">少 <span class="swatch" style="background:#f3f4f6"></span><span class="swatch" style="background:rgba(255,213,0,.4)"></span><span class="swatch" style="background:rgba(255,213,0,.7)"></span><span class="swatch" style="background:#FFD500"></span><span class="swatch" style="background:#0046AD"></span> 多</div>'}
+function calcMastery(cat){var pool=getFormulasByCategory(cat);if(pool.length===0)return{mastered:0,total:0,percent:0};var n=0;for(var i=0;i<pool.length;i++){var p=Storage.getProgress(pool[i].id);if(p&&p.status==='mastered')n++}return{mastered:n,total:pool.length,percent:n/pool.length}}
+function renderUserHeader(){var u=Storage.getUser();return '<div class="card flex items-center gap-4" style="flex-wrap:wrap"><button id="btn-avatar" style="font-size:3rem;background:#f3f4f6;width:72px;height:72px;border-radius:16px">'+u.avatar+'</button><div class="flex-1" style="min-width:200px"><div class="flex items-center gap-3" style="flex-wrap:wrap"><input class="input" id="nick-input" value="'+escapeHtml(u.nickname)+'" style="max-width:240px;padding:8px 12px" /><button class="btn btn-ghost" id="btn-save-nick" style="padding:8px 16px">保存</button></div><div class="mt-2 text-sm t-muted">'+(u.isPremium?'👑 Pro 会员':'🆓 免费用户')+' · 连续 <b class="t-blue">'+Storage.getStreak()+'</b> 天 · 累计 <b class="t-blue">'+Storage.getSessions().reduce(function(s,x){return s+x.total},0)+'</b> 题</div></div></div>'}
+function avatarPickerHtml(){var u=Storage.getUser();var pool=Storage.getAvatarPool();var html='<div class="center"><h3>选个头像</h3><div class="avatar-grid">';for(var i=0;i<pool.length;i++)html+='<button data-avt="'+pool[i]+'" class="'+(pool[i]===u.avatar?'active':'')+'">'+pool[i]+'</button>';html+='</div><button class="btn btn-ghost mt-4" id="__avtClose">关闭</button></div>';return html}
+function renderAchievements(){var list=Storage.getAchievements();var html='<div class="grid grid-4">';for(var i=0;i<list.length;i++){var a=list[i];html+='<div class="ach-card '+(a.unlocked?'unlocked':'')+'" title="'+escapeHtml(a.description)+'"><div class="emoji">'+a.emoji+'</div><div class="text-sm font-semibold mt-1">'+escapeHtml(a.name)+'</div><div class="text-xs t-muted mt-1">'+escapeHtml(a.description)+'</div></div>'}html+='</div>';return html}
+window.renderDashboard=function(){var root=document.getElementById('dashboard-root');if(!root)return;ensureAchievementsInit();checkAndUnlock();var oll=calcMastery('OLL'),pll=calcMastery('PLL');root.innerHTML='<h1>我的</h1><div class="mt-4">'+renderUserHeader()+'</div><div class="mt-6 grid grid-2"><div class="card center"><h3>OLL 掌握度</h3><div class="mt-3 flex justify-center">'+progressRingSvg(oll.percent,120,'OLL',oll.mastered+'/'+oll.total)+'</div></div><div class="card center"><h3>PLL 掌握度</h3><div class="mt-3 flex justify-center">'+progressRingSvg(pll.percent,120,'PLL',pll.mastered+'/'+pll.total)+'</div></div></div><div class="mt-6 card"><div class="flex items-center justify-between" style="flex-wrap:wrap;gap:8px"><h3>近 90 天练习热力</h3><span class="text-sm t-muted">每格 = 1 天</span></div><div class="mt-3">'+heatmapHtml(90)+'</div></div><div class="mt-6"><h2>成就墙</h2><div class="mt-3">'+renderAchievements()+'</div></div><div class="mt-10 card" style="border:1px dashed #fca5a5;background:#fef2f2"><h3 style="color:#b91c1c">⚠️ 危险区</h3><p class="t-muted mt-1 text-sm">清空所有本地数据（昵称、进度、成就、练习历史）。不可撤销。</p><button class="btn mt-3" id="btn-wipe" style="background:#b91c1c;color:#fff">清空所有数据</button></div>';document.getElementById('btn-avatar').addEventListener('click',function(){var close=showModal(avatarPickerHtml());var btns=document.querySelectorAll('#modal-root [data-avt]');for(var i=0;i<btns.length;i++)btns[i].addEventListener('click',function(){var avt=this.getAttribute('data-avt');Storage.updateUser({avatar:avt});track('avatar_changed',{avatar:avt});close();renderDashboard()});var c=document.getElementById('__avtClose');if(c)c.addEventListener('click',close)});document.getElementById('btn-save-nick').addEventListener('click',function(){var v=document.getElementById('nick-input').value.trim();if(!v){toast('昵称不能为空');return}if(v.length>20){toast('昵称最多 20 个字符');return}Storage.updateUser({nickname:v});toast('已保存');track('nickname_changed',{nickname:v})});document.getElementById('btn-wipe').addEventListener('click',function(){if(!confirm('确定要清空所有数据吗？此操作不可撤销。'))return;if(!confirm('再确认一次：清空后无法恢复。'))return;Storage.resetAll();track('data_wiped',{});toast('已清空');setTimeout(function(){location.hash='#/';location.reload()},500)})};
+})();
+</script>
 
-          <div class="mt-6 grid grid-4" id="learn-list"></div>
-        </div>
-      </section>
+<script>
+/* Pricing view */
+(function(){
+function featureRow(text,free,pro){return '<tr><td style="padding:10px 0;border-bottom:1px solid var(--line)">'+escapeHtml(text)+'</td><td class="center" style="padding:10px 0;border-bottom:1px solid var(--line)">'+(free?'✓':'—')+'</td><td class="center" style="padding:10px 0;border-bottom:1px solid var(--line);color:var(--blue);font-weight:600">'+(pro?'✓':'—')+'</td></tr>'}
+window.renderPricing=function(){var root=document.getElementById('pricing-root');if(!root)return;var u=Storage.getUser();track('pricing_view',{isPremium:u.isPremium});root.innerHTML='<section class="center"><div class="hero-badge">💎 Pro 即将上线</div><h1>解锁全部 78 个公式 + 智能练习</h1><p class="mt-4 t-muted text-lg">免费版包含 10 个 OLL + 5 个 PLL，覆盖最常用场景；Pro 解锁全部公式与训练工具。</p></section><section class="mt-10 grid grid-2"><div class="card"><div class="text-sm t-muted">免费</div><div class="mt-1" style="font-size:2rem;font-weight:700">¥0</div><ul class="mt-4" style="display:flex;flex-direction:column;gap:8px"><li>✓ 10 个常用 OLL（含 Sune / Anti-Sune / H / Pi / T 等）</li><li>✓ 5 个常用 PLL（Ua / Ub / H / Z / Aa）</li><li>✓ 3D 动画 + 算法复制</li><li>✓ 随机闪卡（仅免费公式）</li><li>✓ 本地进度 + 成就</li></ul><button class="btn btn-ghost btn-block mt-6" disabled>当前方案</button></div><div class="card" style="border:2px solid var(--yellow)"><div class="flex items-center justify-between"><div class="text-sm t-blue font-semibold">Pro（推荐）</div><span class="pill pill-yellow">🔥 限时</span></div><div class="mt-1" style="font-size:2rem;font-weight:700">¥39 <span class="text-sm t-muted" style="font-weight:400">/ 年</span></div><ul class="mt-4" style="display:flex;flex-direction:column;gap:8px"><li>✓ 全部 57 OLL + 21 PLL（共 78 个）</li><li>✓ 弱项 AI 推荐 · 自适应闪卡</li><li>✓ 计时挑战与个人最佳记录</li><li>✓ 详细数据报告 + 学习曲线</li><li>✓ 免广告、终身免费迭代</li></ul>'+(u.isPremium?'<button class="btn btn-ghost btn-block mt-6" id="btn-try-off">已是 Pro · 关闭体验</button>':'<button class="btn btn-primary btn-block mt-6" id="btn-try-on">🎁 本地试用 Pro</button>')+'<p class="text-xs t-muted mt-2 center">注：v1 MVP 阶段，「本地试用」直接在浏览器中开启 Pro 权限，方便你体验完整功能。</p></div></section><section class="mt-10 card"><h3>功能对比</h3><table class="mt-3" style="width:100%;border-collapse:collapse"><thead><tr style="text-align:left;color:var(--muted);font-size:.85rem"><th style="padding:8px 0">功能</th><th class="center" style="padding:8px 0;width:80px">免费</th><th class="center" style="padding:8px 0;width:80px">Pro</th></tr></thead><tbody>'+featureRow('常用公式（15 个）',true,true)+featureRow('全部 78 个 OLL + PLL',false,true)+featureRow('3D 动画 + 算法复制',true,true)+featureRow('随机闪卡',true,true)+featureRow('弱项强化（AI 推荐）',false,true)+featureRow('计时挑战 / 个人最佳',false,true)+featureRow('详细数据报告',false,true)+featureRow('本地进度 + 成就墙',true,true)+'</tbody></table></section><section class="mt-10"><h2 class="center">常见问题</h2><div class="mt-4 grid"><div class="card"><h3>📖 公式从哪来？</h3><p class="mt-2 t-muted">采用 CFOP 社区通用版本（Cubeskills / J Perm），保留备选算法，方便你挑顺手的。</p></div><div class="card"><h3>💸 真要收费吗？</h3><p class="mt-2 t-muted">v1 MVP 阶段「本地试用」按钮可直接解锁，纯粹是用来让你完整体验。正式订阅在后续版本上线。</p></div><div class="card"><h3>🧊 没网络能用吗？</h3><p class="mt-2 t-muted">界面、文本、进度、闪卡都本地运行，断网照样能学；只是 3D 动画依赖 CDN，断网时会自动降级为算法文字展示。</p></div><div class="card"><h3>👶 孩子能用吗？</h3><p class="mt-2 t-muted">全中文界面、卡片大字、3D 动画直观，建议家长陪同设置头像和昵称后让孩子自学。</p></div></div></section>';var on=document.getElementById('btn-try-on');if(on)on.addEventListener('click',function(){Storage.updateUser({isPremium:true});track('pro_try_on',{});toast('🎉 Pro 已开启，全部公式已解锁');renderPricing()});var off=document.getElementById('btn-try-off');if(off)off.addEventListener('click',function(){Storage.updateUser({isPremium:false});track('pro_try_off',{});toast('已关闭 Pro 体验');renderPricing()})};
+})();
+</script>
 
-      <!-- 公式详情 -->
-      <section id="view-detail" class="view">
-        <div class="container-sm py-6" id="detail-root"></div>
-      </section>
+<script>
+/* Final boot — build index after all data + views are registered */
+buildFormulaIndex();
+router();
+</script>
 
-      <!-- 练习 -->
-      <section id="view-practice" class="view">
-        <div class="container py-6" id="practice-root"></div>
-      </section>
-
-      <!-- 我的 -->
-      <section id="view-dashboard" class="view">
-        <div class="container py-6" id="dashboard-root"></div>
-      </section>
-
-      <!-- Pro 定价 -->
-      <section id="view-pricing" class="view">
-        <div class="container py-8" id="pricing-root"></div>
-      </section>
-
-      <!-- 404 -->
-      <section id="view-404" class="view">
-        <div class="container py-10 center min-h-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
-          <div class="text-5xl">🧊</div>
-          <h1 class="mt-4">页面走失了</h1>
-          <p class="t-muted mt-2">这个位置还没有东西。</p>
-          <a href="#/" data-nav class="btn btn-primary mt-6">回到首页</a>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <div class="toast" id="toast"></div>
-  <div id="modal-root"></div>
-
-  <!-- ============ Core app (storage / router / cube / formulas seed) ============ -->
-  <script>
-    /* =========================================================================
-     * Toast
-     * ========================================================================= */
-    var __toastEl = document.getElementById('toast');
-    var __toastTimer;
-    function toast(msg) {
-      __toastEl.textContent = msg;
-      __toastEl.classList.add('show');
-      clearTimeout(__toastTimer);
-      __toastTimer = setTimeout(function(){ __toastEl.classList.remove('show'); }, 1800);
-    }
-
-    /* =========================================================================
-     * Utils
-     * ========================================================================= */
-    function escapeHtml(s) {
-      return String(s).replace(/[&<>"']/g, function(c){
-        return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
-      });
-    }
-    function invertAlgorithm(alg) {
-      return String(alg || '').trim().split(/\s+/).filter(Boolean).reverse().map(function(m){
-        if (m.endsWith("'")) return m.slice(0, -1);
-        if (m.endsWith('2')) return m;
-        return m + "'";
-      }).join(' ');
-    }
-    function copyToClipboard(text) {
-      if (navigator.clipboard && window.isSecureContext) {
-        return navigator.clipboard.writeText(text).then(function(){ return true; }).catch(function(){ return fallbackCopy(text); });
-      }
-      return Promise.resolve(fallbackCopy(text));
-    }
-    function fallbackCopy(text) {
-      try {
-        var ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed'; ta.style.left = '-9999px';
-        ta.setAttribute('readonly','');
-        document.body.appendChild(ta);
-        ta.select(); ta.setSelectionRange(0, text.length);
-        var ok = document.execCommand('copy');
-        document.body.removeChild(ta);
-        return ok;
-      } catch (e) { return false; }
-    }
-    function formatRelativeTime(ts) {
-      if (!ts) return '从未练习';
-      var diff = Date.now() - ts;
-      var min = Math.floor(diff / 60000);
-      if (min < 1) return '刚刚';
-      if (min < 60) return min + ' 分钟前';
-      var hr = Math.floor(min / 60);
-      if (hr < 24) return hr + ' 小时前';
-      var day = Math.floor(hr / 24);
-      if (day < 30) return day + ' 天前';
-      return new Date(ts).toLocaleDateString('zh-CN');
-    }
-    function uuid() {
-      if (crypto && crypto.randomUUID) return crypto.randomUUID();
-      return 'anon-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-    }
-    function todayStr() { return new Date().toISOString().slice(0, 10); }
-
-    /* =========================================================================
-     * Storage (localStorage)
-     * ========================================================================= */
-    var KEYS = {
-      user: 'mc_user',
-      anonUid: 'mc_anon_uid',
-      progress: 'mc_progress',
-      sessions: 'mc_sessions',
-      achievements: 'mc_achievements'
-    };
-    function _read(k, fb) {
-      try {
-        var raw = localStorage.getItem(k);
-        if (raw === null) return fb;
-        return JSON.parse(raw);
-      } catch(e) { return fb; }
-    }
-    function _write(k, v) {
-      try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
-    }
-    var AVATAR_POOL = ['🦊','🐼','🐯','🐰','🐸','🐵','🐨','🦁'];
-    var Storage = {
-      getAnonUid: function() {
-        var uid;
-        try { uid = localStorage.getItem(KEYS.anonUid); } catch(e) {}
-        if (!uid) {
-          uid = uuid();
-          try { localStorage.setItem(KEYS.anonUid, uid); } catch(e) {}
-        }
-        return uid;
-      },
-      getUser: function() {
-        var u = _read(KEYS.user, null);
-        if (u) return u;
-        var avatar = AVATAR_POOL[Math.floor(Math.random() * AVATAR_POOL.length)];
-        u = { id: Storage.getAnonUid(), nickname: '小魔方手', avatar: avatar, isPremium: false, createdAt: Date.now() };
-        _write(KEYS.user, u);
-        return u;
-      },
-      updateUser: function(patch) {
-        var u = Storage.getUser();
-        var next = Object.assign({}, u, patch);
-        _write(KEYS.user, next);
-        return next;
-      },
-      getAvatarPool: function(){ return AVATAR_POOL.slice(); },
-      getAllProgress: function(){ return _read(KEYS.progress, {}); },
-      getProgress: function(fid){ return Storage.getAllProgress()[fid]; },
-      upsertProgress: function(fid, patch) {
-        var all = Storage.getAllProgress();
-        var prev = all[fid] || { formulaId: fid, status: 'new', practiceCount: 0, lastPracticedAt: 0, successRate: 0 };
-        var next = Object.assign({}, prev, patch, { formulaId: fid });
-        all[fid] = next;
-        _write(KEYS.progress, all);
-        return next;
-      },
-      recordPractice: function(fid, success) {
-        var prev = Storage.getProgress(fid) || { formulaId: fid, status: 'new', practiceCount: 0, lastPracticedAt: 0, successRate: 0 };
-        var nextCount = prev.practiceCount + 1;
-        var prevSucc = Math.round(prev.successRate * prev.practiceCount);
-        var nextSucc = prevSucc + (success ? 1 : 0);
-        var rate = nextCount > 0 ? nextSucc / nextCount : 0;
-        var status = prev.status === 'new' ? 'learning' : prev.status;
-        if (nextCount >= 3 && rate >= 0.8) status = 'mastered';
-        return Storage.upsertProgress(fid, {
-          practiceCount: nextCount,
-          lastPracticedAt: Date.now(),
-          successRate: rate,
-          status: status
-        });
-      },
-      markMastered: function(fid){ return Storage.upsertProgress(fid, { status:'mastered', lastPracticedAt: Date.now() }); },
-      markLearning: function(fid){ return Storage.upsertProgress(fid, { status:'learning' }); },
-      getSessions: function(){ return _read(KEYS.sessions, []); },
-      addSession: function(s) {
-        var all = Storage.getSessions();
-        all.push(s);
-        _write(KEYS.sessions, all.slice(-200));
-      },
-      getDailyCounts: function(days) {
-        var map = {};
-        var now = new Date();
-        var order = [];
-        for (var i = days - 1; i >= 0; i--) {
-          var d = new Date(now); d.setDate(now.getDate() - i);
-          var key = d.toISOString().slice(0,10);
-          map[key] = 0; order.push(key);
-        }
-        var sess = Storage.getSessions();
-        for (var j = 0; j < sess.length; j++) {
-          if (map.hasOwnProperty(sess[j].date)) map[sess[j].date] += sess[j].total;
-        }
-        return order.map(function(k){ return { date: k, count: map[k] }; });
-      },
-      getStreak: function() {
-        var sessions = Storage.getSessions();
-        if (sessions.length === 0) return 0;
-        var set = {};
-        for (var i = 0; i < sessions.length; i++) set[sessions[i].date] = true;
-        var streak = 0;
-        var cur = new Date();
-        if (!set[cur.toISOString().slice(0,10)]) cur.setDate(cur.getDate() - 1);
-        while (set[cur.toISOString().slice(0,10)]) {
-          streak++;
-          cur.setDate(cur.getDate() - 1);
-        }
-        return streak;
-      },
-      getAchievements: function(){ return _read(KEYS.achievements, []); },
-      setAchievements: function(list){ _write(KEYS.achievements, list); },
-      unlockAchievement: function(id) {
-        var all = Storage.getAchievements();
-        var idx = -1;
-        for (var i = 0; i < all.length; i++) if (all[i].id === id) { idx = i; break; }
-        if (idx >= 0 && !all[idx].unlocked) {
-          all[idx] = Object.assign({}, all[idx], { unlocked: true, unlockedAt: Date.now() });
-          _write(KEYS.achievements, all);
-        }
-      },
-      resetAll: function() {
-        try {
-          for (var k in KEYS) localStorage.removeItem(KEYS[k]);
-        } catch(e) {}
-      }
-    };
-
-    /* =========================================================================
-     * Achievements
-     * ========================================================================= */
-    var ACHIEVEMENT_DEFS = [
-      { id:'first_practice', name:'初试身手', description:'完成第 1 次练习', emoji:'🥉' },
-      { id:'practice_10',    name:'勤奋学习', description:'累计练习 10 题', emoji:'📚' },
-      { id:'practice_50',    name:'熟能生巧', description:'累计练习 50 题', emoji:'🎯' },
-      { id:'mastered_10',    name:'十公式小手', description:'掌握 10 个公式', emoji:'⭐' },
-      { id:'mastered_oll',   name:'OLL 全掌握', description:'掌握全部 57 个 OLL', emoji:'🏆' },
-      { id:'mastered_pll',   name:'PLL 全掌握', description:'掌握全部 21 个 PLL', emoji:'👑' },
-      { id:'streak_7',       name:'一周坚持', description:'连续 7 天练习', emoji:'🔥' },
-      { id:'streak_30',      name:'一月不断', description:'连续 30 天练习', emoji:'🚀' }
-    ];
-    function ensureAchievementsInit() {
-      var existing = Storage.getAchievements();
-      if (existing.length === 0) {
-        var seed = ACHIEVEMENT_DEFS.map(function(d){ return Object.assign({}, d, { unlocked:false }); });
-        Storage.setAchievements(seed);
-        return seed;
-      }
-      var byId = {};
-      for (var i = 0; i < existing.length; i++) byId[existing[i].id] = existing[i];
-      var merged = ACHIEVEMENT_DEFS.map(function(d){
-        return byId[d.id] || Object.assign({}, d, { unlocked:false });
-      });
-      Storage.setAchievements(merged);
-      return merged;
-    }
-    function checkAndUnlock() {
-      ensureAchievementsInit();
-      var sessions = Storage.getSessions();
-      var totalPractice = sessions.reduce(function(s,x){ return s + x.total; }, 0);
-      var progress = [];
-      var allP = Storage.getAllProgress();
-      for (var k in allP) progress.push(allP[k]);
-      var mastered = progress.filter(function(p){ return p.status === 'mastered'; });
-      var masteredOll = mastered.filter(function(p){ return p.formulaId.indexOf('oll-') === 0; }).length;
-      var masteredPll = mastered.filter(function(p){ return p.formulaId.indexOf('pll-') === 0; }).length;
-      var streak = Storage.getStreak();
-      var checks = [
-        ['first_practice', sessions.length >= 1],
-        ['practice_10', totalPractice >= 10],
-        ['practice_50', totalPractice >= 50],
-        ['mastered_10', mastered.length >= 10],
-        ['mastered_oll', masteredOll >= 57],
-        ['mastered_pll', masteredPll >= 21],
-        ['streak_7', streak >= 7],
-        ['streak_30', streak >= 30]
-      ];
-      var all = Storage.getAchievements();
-      var unlockedNow = [];
-      for (var i = 0; i < checks.length; i++) {
-        var id = checks[i][0], ok = checks[i][1];
-        var item = null;
-        for (var j = 0; j < all.length; j++) if (all[j].id === id) { item = all[j]; break; }
-        if (ok && item && !item.unlocked) {
-          Storage.unlockAchievement(id);
-          unlockedNow.push(id);
-        }
-      }
-      return unlockedNow;
-    }
-
-    /* =========================================================================
-     * Analytics (console only)
-     * ========================================================================= */
-    function track(event, props) {
-      try {
-        console.log('[analytics]', Object.assign({ event: event, uid: Storage.getAnonUid(), ts: Date.now() }, props || {}));
-      } catch(e) {}
-    }
-
-    /* =========================================================================
-     * FORMULAS — OLL injected here, PLL by js/pll.js
-     * ========================================================================= */
-    var FREE_OLL_NUMBERS = { 27:1, 26:1, 21:1, 22:1, 23:1, 24:1, 25:1, 44:1, 45:1, 33:1 };
-    var FREE_PLL_CODES = { Ua:1, Ub:1, H:1, Z:1, Aa:1 };
-
-    function ollEntry(number, name, sub, alg, diff, alts, tip) {
-      return {
-        id: 'oll-' + number,
-        category: 'OLL',
-        subCategory: sub,
-        number: number,
-        name: name,
-        algorithm: alg,
-        alternativeAlgorithms: alts || [],
-        setupMoves: invertAlgorithm(alg),
-        difficulty: diff,
-        isPremium: !FREE_OLL_NUMBERS[number],
-        tip: tip || ''
-      };
-    }
-
-    var OLL_FORMULAS = [
-      ollEntry(1,  'Dot 1', 'Dot', "(R U2') (R2' F R F') U2' (R' F R F')", 3),
-      ollEntry(2,  'Dot 2', 'Dot', "F (R U R' U') F' f (R U R' U') f'", 3),
-      ollEntry(3,  'Dot 3', 'Dot', "f (R U R' U') f' U' F (R U R' U') F'", 3),
-      ollEntry(4,  'Dot 4', 'Dot', "f (R U R' U') f' U F (R U R' U') F'", 3),
-      ollEntry(5,  'Square 1', 'Square', "(r' U2 R U R' U r)", 2),
-      ollEntry(6,  'Square 2', 'Square', "(r U2 R' U' R U' r')", 2),
-      ollEntry(7,  'Lightning 1', 'Lightning', "(r U R' U R U2 r')", 2),
-      ollEntry(8,  'Lightning 2', 'Lightning', "(r' U' R U' R' U2 r)", 2),
-      ollEntry(9,  'Fish (Kite) 1', 'Fish', "(R U R' U') R' F (R2 U R' U') F'", 3),
-      ollEntry(10, 'Fish (Kite) 2', 'Fish', "(R U R' U) (R' F R F') (R U2 R')", 3),
-      ollEntry(11, 'Lightning 3', 'Lightning', "r' (R2 U R' U R U2 R') U M'", 3),
-      ollEntry(12, 'Lightning 4', 'Lightning', "M' (R' U' R U' R' U2 R) U' M", 3),
-      ollEntry(13, 'Knight 1', 'Knight', "(r U' r') (U' r U r') y' (R' U R)", 3),
-      ollEntry(14, 'Knight 2', 'Knight', "(R' F R) (U R' F' R) (F U' F')", 3),
-      ollEntry(15, 'Knight 3', 'Knight', "(r' U' r) (R' U' R U) (r' U r)", 3),
-      ollEntry(16, 'Knight 4', 'Knight', "(r U r') (R U R' U') (r U' r')", 3),
-      ollEntry(17, 'Awkward 1', 'Awkward', "(R U R' U) (R' F R F') U2 (R' F R F')", 3),
-      ollEntry(18, 'Awkward 2', 'Awkward', "F (R U R' U) y' (R' U2) (R' F R F')", 3),
-      ollEntry(19, 'Awkward 3', 'Awkward', "M U (R U R' U') M' (R' F R F')", 3),
-      ollEntry(20, 'Double Sune', 'Awkward', "M U (R U R' U') M2 (U R U' r')", 3),
-      ollEntry(21, 'Cross / H', 'OCLL', "(R U2 R' U' R U R' U' R U' R')", 1, ["F (R U R' U')3 F'"], '双 Sune 合并'),
-      ollEntry(22, 'Pi',        'OCLL', "R U2' R2' U' R2 U' R2' U2' R", 1, ["f (R U R' U') f' F (R U R' U') F'"]),
-      ollEntry(23, 'Headlights','OCLL', "R2' D' R U2 R' D R U2 R", 1, ["R2 D (R' U2 R) D' (R' U2 R')"]),
-      ollEntry(24, 'Bowtie',    'OCLL', "(r U R' U') (r' F R F')", 1),
-      ollEntry(25, 'Bowtie 反 / Diagonal', 'OCLL', "F' (r U R' U') r' F R", 1, ["x' (R U R' D) (R U' R' D') x"]),
-      ollEntry(26, 'Anti-Sune', 'OCLL', "(R U2 R' U' R U' R')", 1, ["L' U' L U' L' U2 L"], '左前角朝外'),
-      ollEntry(27, 'Sune',      'OCLL', "(R U R' U R U2 R')", 1, ["L' U2 L U L' U L"], '最常用 OLL'),
-      ollEntry(28, 'Block 1', 'Block', "(r U R' U') M (U R U' R')", 2),
-      ollEntry(29, 'Block 2', 'Block', "(R U R' U') (R U' R') (F' U' F) (R U R')", 3),
-      ollEntry(30, 'Block 3', 'Block', "F R' F (R2 U' R' U') (R U R') F2", 3),
-      ollEntry(31, 'P-shape 1', 'P-shape', "(R' U' F) (U R U' R') F' R", 2),
-      ollEntry(32, 'P-shape 2', 'P-shape', "(S R U R' U') (R' F R f')", 2),
-      ollEntry(33, 'T-shape 1', 'T-shape', "(R U R' U') (R' F R F')", 1, [], '熟悉 sexy + sledge 的组合'),
-      ollEntry(34, 'C-shape 1', 'C-shape', "(R U R' U') B' (R' F R F') B", 2),
-      ollEntry(35, 'Fish 3', 'Fish', "(R U2') (R2' F R F') (R U2' R')", 2),
-      ollEntry(36, 'W-shape 1', 'W-shape', "(R' U' R U' R' U R U) l U' R' U x", 3),
-      ollEntry(37, 'Fish 4 (Mounted)', 'Fish', "F (R U' R' U') (R U R' F')", 2),
-      ollEntry(38, 'W-shape 2', 'W-shape', "(R U R' U) (R U' R' U') (R' F R F')", 2),
-      ollEntry(39, 'Big Lightning 1', 'Lightning', "(L F') (L' U' L U) F U' L'", 3),
-      ollEntry(40, 'Big Lightning 2', 'Lightning', "(R' F) (R U R' U') F' U R", 3),
-      ollEntry(41, 'Awkward Fish 1', 'Awkward', "(R U R' U R U2' R') F (R U R' U') F'", 3),
-      ollEntry(42, 'Awkward Fish 2', 'Awkward', "(R' U' R U' R' U2 R) F (R U R' U') F'", 3),
-      ollEntry(43, 'P-shape 3', 'P-shape', "f' (L' U' L U) f", 2),
-      ollEntry(44, 'P-shape 4', 'P-shape', "f (R U R' U') f'", 1, [], '镜像 OLL 45'),
-      ollEntry(45, 'T-shape 2', 'T-shape', "F (R U R' U') F'", 1, [], '万能 OLL 之一'),
-      ollEntry(46, 'L-shape (Seein\u2019 Headlights)', 'L-shape', "R' U' (R' F R F') U R", 2),
-      ollEntry(47, 'L-shape 1', 'L-shape', "F' (L' U' L U) (L' U' L U) F", 2),
-      ollEntry(48, 'L-shape 2', 'L-shape', "F (R U R' U') (R U R' U') F'", 2),
-      ollEntry(49, 'L-shape 3', 'L-shape', "R B' R2 F R2 B R2 F' R", 3),
-      ollEntry(50, 'L-shape 4', 'L-shape', "R' F R2 B' R2' F' R2 B R'", 3),
-      ollEntry(51, 'Line 1', 'Line', "f (R U R' U') (R U R' U') f'", 2),
-      ollEntry(52, 'Line 2', 'Line', "(R U R' U) R d' R U' R' F'", 2),
-      ollEntry(53, 'L-shape 5', 'L-shape', "(r' U' R U' R' U R U' R' U2 r)", 3),
-      ollEntry(54, 'L-shape 6', 'L-shape', "(r U R' U R U' R' U R U2' r')", 3),
-      ollEntry(55, 'Line 3', 'Line', "R' F (R U R U' R2' F') R2 U' R' (U R U R')", 3),
-      ollEntry(56, 'Line 4', 'Line', "(r U r') (U R U' R') (U R U' R') (r U' r')", 3),
-      ollEntry(57, 'H (Edges Only)', 'OCLL', "(R U R' U') M' (U R U' r')", 1, ["(R U R' U R U' R') M' (U R U' r')"])
-    ];
-
-    var PLL_FORMULAS = []; // populated by js/pll.js
-    var ALL_FORMULAS = [];
-
-    function buildFormulaIndex() {
-      ALL_FORMULAS = OLL_FORMULAS.concat(PLL_FORMULAS);
-    }
-    function getFormulaById(id) {
-      for (var i = 0; i < ALL_FORMULAS.length; i++) if (ALL_FORMULAS[i].id === id) return ALL_FORMULAS[i];
-    }
-    function getFormulasByCategory(cat) {
-      return ALL_FORMULAS.filter(function(f){ return f.category === cat; });
-    }
-    function getSubCategories(cat) {
-      var seen = {}, out = [];
-      for (var i = 0; i < ALL_FORMULAS.length; i++) {
-        var f = ALL_FORMULAS[i];
-        if (f.category === cat && !seen[f.subCategory]) {
-          seen[f.subCategory] = true;
-          out.push(f.subCategory);
-        }
-      }
-      return out;
-    }
-    function getAdjacentFormulas(id) {
-      var f = getFormulaById(id);
-      if (!f) return {};
-      var list = getFormulasByCategory(f.category).slice().sort(function(a,b){ return a.number - b.number; });
-      var idx = -1;
-      for (var i = 0; i < list.length; i++) if (list[i].id === id) { idx = i; break; }
-      return {
-        prev: idx > 0 ? list[idx - 1] : null,
-        next: (idx >= 0 && idx < list.length - 1) ? list[idx + 1] : null
-      };
-    }
-
-    /* =========================================================================
-     * cubing.js — lazy ESM (graceful fallback)
-     * ========================================================================= */
-    var CUBING_STATE = { loaded: false, loading: false, failed: false, queue: [] };
-    function loadCubing() {
-      if (CUBING_STATE.loaded || CUBING_STATE.failed) return Promise.resolve(CUBING_STATE.loaded);
-      if (CUBING_STATE.loading) return new Promise(function(res){ CUBING_STATE.queue.push(res); });
-      CUBING_STATE.loading = true;
-      return new Promise(function(resolve){
-        var s = document.createElement('script');
-        s.type = 'module';
-        s.textContent = "import('https://cdn.jsdelivr.net/npm/cubing@0.55.0/twisty.js').then(function(){window.__cubingReady(true);}).catch(function(){window.__cubingReady(false);});";
-        window.__cubingReady = function(ok) {
-          CUBING_STATE.loaded = !!ok;
-          CUBING_STATE.failed = !ok;
-          CUBING_STATE.loading = false;
-          resolve(ok);
-          CUBING_STATE.queue.forEach(function(r){ r(ok); });
-          CUBING_STATE.queue = [];
-        };
-        setTimeout(function(){ if (CUBING_STATE.loading) window.__cubingReady(false); }, 8000);
-        document.head.appendChild(s);
-      });
-    }
-    function mountCube(host, opts) {
-      if (!host) return;
-      opts = opts || {};
-      var size = opts.size || 240;
-      host.innerHTML = '';
-      host.style.minHeight = Math.min(size, 280) + 'px';
-      function renderFallback() {
-        var el = document.createElement('div');
-        el.className = 'cube-fallback';
-        el.innerHTML = '<div style="font-size:2rem">🧊</div>' +
-          '<div style="margin-top:6px">' + escapeHtml(opts.alg || '—') + '</div>';
-        host.appendChild(el);
-      }
-      if (CUBING_STATE.failed) { renderFallback(); return; }
-      var ph = document.createElement('div');
-      ph.className = 'cube-fallback';
-      ph.textContent = '魔方加载中…';
-      host.appendChild(ph);
-      loadCubing().then(function(ok){
-        if (!ok) { host.innerHTML = ''; renderFallback(); return; }
-        host.innerHTML = '';
-        var p = document.createElement('twisty-player');
-        p.setAttribute('puzzle', '3x3x3');
-        p.setAttribute('visualization', opts.visualization || '3D');
-        p.setAttribute('background', opts.background || 'none');
-        p.setAttribute('control-panel', opts.controlPanel || 'bottom-row');
-        p.setAttribute('hint-facelets', opts.hintFacelets || 'floating');
-        p.setAttribute('back-view', opts.backView || 'none');
-        p.setAttribute('tempo-scale', String(opts.tempoScale || 1));
-        if (opts.alg) p.setAttribute('alg', opts.alg);
-        if (opts.setupAlg) p.setAttribute('experimental-setup-alg', opts.setupAlg);
-        p.style.width = size + 'px';
-        p.style.height = size + 'px';
-        p.style.maxWidth = '100%';
-        host.appendChild(p);
-      });
-    }
-
-    /* =========================================================================
-     * Router
-     * ========================================================================= */
-    function parseHash() {
-      var h = location.hash || '#/';
-      if (h.charAt(0) === '#') h = h.slice(1);
-      if (!h) h = '/';
-      return h;
-    }
-    function setActiveNav(path) {
-      var anchors = document.querySelectorAll('#nav a');
-      for (var i = 0; i < anchors.length; i++) {
-        var m = anchors[i].getAttribute('data-match');
-        var active = (m === '/') ? (path === '/') : (path.indexOf(m) === 0);
-        anchors[i].classList.toggle('active', active);
-      }
-    }
-    function showView(id) {
-      var views = document.querySelectorAll('.view');
-      for (var i = 0; i < views.length; i++) views[i].classList.toggle('active', views[i].id === id);
-      window.scrollTo(0, 0);
-    }
-    function router() {
-      var path = parseHash();
-      setActiveNav(path);
-      if (path === '/') { showView('view-home'); return; }
-      if (path === '/learn') { showView('view-learn'); if (window.renderLearn) renderLearn(); return; }
-      if (/^\/learn\/(OLL|PLL)\/([\w-]+)$/.test(path)) {
-        var m = path.match(/^\/learn\/(OLL|PLL)\/([\w-]+)$/);
-        showView('view-detail'); if (window.renderDetail) renderDetail(m[2]); return;
-      }
-      if (path === '/practice') { showView('view-practice'); if (window.renderPractice) renderPractice(); return; }
-      if (path === '/dashboard') { showView('view-dashboard'); if (window.renderDashboard) renderDashboard(); return; }
-      if (path === '/pricing') { showView('view-pricing'); if (window.renderPricing) renderPricing(); return; }
-      showView('view-404');
-    }
-    window.addEventListener('hashchange', router);
-
-    /* =========================================================================
-     * Modal helpers
-     * ========================================================================= */
-    function showModal(html, onClose) {
-      var root = document.getElementById('modal-root');
-      root.innerHTML = '<div class="modal-mask" id="__mm"><div class="modal" id="__md">' + html + '</div></div>';
-      var mask = document.getElementById('__mm');
-      function close() {
-        root.innerHTML = '';
-        if (typeof onClose === 'function') onClose();
-      }
-      mask.addEventListener('click', function(e){ if (e.target === mask) close(); });
-      window.__closeModal = close;
-      return close;
-    }
-    function closeModal() {
-      if (window.__closeModal) window.__closeModal();
-      else document.getElementById('modal-root').innerHTML = '';
-    }
-    function showPremiumModal(opts) {
-      opts = opts || {};
-      track('premium_modal_show', { formulaId: opts.formulaId, feature: opts.feature });
-      var html = '' +
-        '<div class="center" style="font-size:3rem">🔒</div>' +
-        '<h2 class="center mt-3">这个是 Pro 内容</h2>' +
-        '<p class="center t-muted mt-2">解锁全部 78 个公式、计时挑战、弱项强化与详细数据报告。</p>' +
-        '<div class="mt-6 flex" style="flex-direction:column;gap:12px">' +
-        '  <a href="#/pricing" class="btn btn-primary" data-nav id="__pmGo">查看 Pro 详情</a>' +
-        '  <button class="btn btn-ghost" id="__pmClose">稍后再说</button>' +
-        '</div>';
-      var close = showModal(html, opts.onClose);
-      document.getElementById('__pmClose').addEventListener('click', close);
-      document.getElementById('__pmGo').addEventListener('click', function(){ close(); });
-    }
-
-    /* =========================================================================
-     * Boot
-     * ========================================================================= */
-    document.getElementById('year').textContent = new Date().getFullYear();
-    if (!location.hash) location.hash = '#/';
-    ensureAchievementsInit();
-    Storage.getUser();
-    buildFormulaIndex();
-    router();
-  </script>
-
-  <!-- ============ View modules (each calls buildFormulaIndex / router as needed) ============ -->
-  <script src="js/pll.js"></script>
-  <script src="js/learn.js"></script>
-  <script src="js/detail.js"></script>
-  <script src="js/practice.js"></script>
-  <script src="js/dashboard.js"></script>
-  <script src="js/pricing.js"></script>
 </body>
 </html>
