@@ -143,12 +143,6 @@ twisty-player{max-width:100%}
 <div class="toast" id="toast"></div><div id="modal-root"></div>
 
 <script>
-/* ========== Hardened core ==========
-   - 全局 try/catch 兜底，错误显示横幅但页面可用
-   - 内部路由变量 _route，不写 location.hash（避免嵌入容器干扰）
-   - data-route="..." 链接点击直接调用 navigate()
-   - localStorage 完全 try/catch + 内存兜底
-==================================== */
 window.addEventListener('error',function(e){
   try{
     var er=document.getElementById('err-root');
@@ -180,7 +174,6 @@ function fallbackCopy(text){try{var ta=document.createElement('textarea');ta.val
 window.uuid=function(){try{if(window.crypto&&crypto.randomUUID)return crypto.randomUUID()}catch(e){}return 'anon-'+Date.now()+'-'+Math.random().toString(36).slice(2)};
 window.todayStr=function(){return new Date().toISOString().slice(0,10)};
 
-/* ===== Internal route (不依赖 location.hash) ===== */
 var _route='/';
 window.getRoute=function(){return _route};
 window.navigate=function(path){_route=path||'/';try{window.scrollTo(0,0)}catch(e){}router()};
@@ -202,7 +195,6 @@ window.router=function(){
   }catch(e){console.error('[router]',e);showView('view-home')}
 };
 
-/* ===== 全局事件代理：data-route 点击 ===== */
 document.addEventListener('click',function(e){
   try{
     var t=e.target;
@@ -217,7 +209,6 @@ document.addEventListener('click',function(e){
   }catch(err){console.error(err)}
 },true);
 
-/* ===== Storage（带兜底）===== */
 function _read(k,fb){try{var raw=__store.get(k);return raw===null||raw===undefined?fb:JSON.parse(raw)}catch(e){return fb}}
 function _write(k,v){try{__store.set(k,JSON.stringify(v))}catch(e){}}
 var KEYS={user:'mc_user',anonUid:'mc_anon_uid',progress:'mc_progress',sessions:'mc_sessions',achievements:'mc_achievements'};
@@ -258,7 +249,6 @@ window.ensureAchievementsInit=function(){var existing=Storage.getAchievements();
 window.checkAndUnlock=function(){try{ensureAchievementsInit();var sessions=Storage.getSessions();var totalPractice=sessions.reduce(function(s,x){return s+x.total},0);var allP=Storage.getAllProgress(),progress=[];for(var k in allP)progress.push(allP[k]);var mastered=progress.filter(function(p){return p.status==='mastered'});var masteredOll=mastered.filter(function(p){return p.formulaId.indexOf('oll-')===0}).length;var masteredPll=mastered.filter(function(p){return p.formulaId.indexOf('pll-')===0}).length;var streak=Storage.getStreak();var checks=[['first_practice',sessions.length>=1],['practice_10',totalPractice>=10],['practice_50',totalPractice>=50],['mastered_10',mastered.length>=10],['mastered_oll',masteredOll>=57],['mastered_pll',masteredPll>=21],['streak_7',streak>=7],['streak_30',streak>=30]];var unlockedNow=[];for(var i=0;i<checks.length;i++){var id=checks[i][0],ok=checks[i][1];if(ok){var all=Storage.getAchievements();for(var j=0;j<all.length;j++){if(all[j].id===id&&!all[j].unlocked){Storage.unlockAchievement(id);unlockedNow.push(id);break}}}}return unlockedNow}catch(e){return[]}};
 window.track=function(event,props){try{console.log('[analytics]',Object.assign({event:event,ts:Date.now()},props||{}))}catch(e){}};
 
-/* ===== Formulas registry ===== */
 window.FREE_OLL_NUMBERS={27:1,26:1,21:1,22:1,23:1,24:1,25:1,44:1,45:1,33:1};
 window.FREE_PLL_CODES={Ua:1,Ub:1,H:1,Z:1,Aa:1};
 window.ollEntry=function(number,name,sub,alg,diff,alts,tip){return{id:'oll-'+number,category:'OLL',subCategory:sub,number:number,name:name,algorithm:alg,alternativeAlgorithms:alts||[],setupMoves:invertAlgorithm(alg),difficulty:diff,isPremium:!FREE_OLL_NUMBERS[number],tip:tip||''}};
@@ -270,22 +260,113 @@ window.getFormulasByCategory=function(cat){return ALL_FORMULAS.filter(function(f
 window.getSubCategories=function(cat){var seen={},out=[];for(var i=0;i<ALL_FORMULAS.length;i++){var f=ALL_FORMULAS[i];if(f.category===cat&&!seen[f.subCategory]){seen[f.subCategory]=true;out.push(f.subCategory)}}return out};
 window.getAdjacentFormulas=function(id){var f=getFormulaById(id);if(!f)return{};var list=getFormulasByCategory(f.category).slice().sort(function(a,b){return a.number-b.number});var idx=-1;for(var i=0;i<list.length;i++)if(list[i].id===id){idx=i;break}return{prev:idx>0?list[idx-1]:null,next:(idx>=0&&idx<list.length-1)?list[idx+1]:null}};
 
-/* ===== cubing.js lazy loader (graceful fallback) ===== */
 var CUBING_STATE={loaded:false,loading:false,failed:false,queue:[]};
 window.loadCubing=function(){if(CUBING_STATE.loaded||CUBING_STATE.failed)return Promise.resolve(CUBING_STATE.loaded);if(CUBING_STATE.loading)return new Promise(function(res){CUBING_STATE.queue.push(res)});CUBING_STATE.loading=true;return new Promise(function(resolve){try{var s=document.createElement('script');s.type='module';s.textContent="import('https://cdn.jsdelivr.net/npm/cubing@0.55.0/twisty.js').then(function(){window.__cubingReady&&window.__cubingReady(true);}).catch(function(){window.__cubingReady&&window.__cubingReady(false);});";window.__cubingReady=function(ok){CUBING_STATE.loaded=!!ok;CUBING_STATE.failed=!ok;CUBING_STATE.loading=false;resolve(ok);CUBING_STATE.queue.forEach(function(r){r(ok)});CUBING_STATE.queue=[]};setTimeout(function(){if(CUBING_STATE.loading&&window.__cubingReady)window.__cubingReady(false)},8000);document.head.appendChild(s)}catch(e){CUBING_STATE.failed=true;CUBING_STATE.loading=false;resolve(false)}})};
 window.mountCube=function(host,opts){if(!host)return;opts=opts||{};var size=opts.size||240;host.innerHTML='';host.style.minHeight=Math.min(size,280)+'px';function renderFallback(){var el=document.createElement('div');el.className='cube-fallback';el.innerHTML='<div style="font-size:2rem">🧊</div><div style="margin-top:6px">'+escapeHtml(opts.alg||'—')+'</div>';host.appendChild(el)}if(CUBING_STATE.failed){renderFallback();return}var ph=document.createElement('div');ph.className='cube-fallback';ph.textContent='魔方加载中…';host.appendChild(ph);loadCubing().then(function(ok){if(!ok){host.innerHTML='';renderFallback();return}try{host.innerHTML='';var p=document.createElement('twisty-player');p.setAttribute('puzzle','3x3x3');p.setAttribute('visualization',opts.visualization||'3D');p.setAttribute('background',opts.background||'none');p.setAttribute('control-panel',opts.controlPanel||'bottom-row');p.setAttribute('hint-facelets',opts.hintFacelets||'floating');p.setAttribute('back-view',opts.backView||'none');p.setAttribute('tempo-scale',String(opts.tempoScale||1));if(opts.alg)p.setAttribute('alg',opts.alg);if(opts.setupAlg)p.setAttribute('experimental-setup-alg',opts.setupAlg);p.style.width=size+'px';p.style.height=size+'px';p.style.maxWidth='100%';host.appendChild(p)}catch(e){host.innerHTML='';renderFallback()}})};
 
-/* ===== Modal ===== */
 window.showModal=function(html,onClose){var root=document.getElementById('modal-root');root.innerHTML='<div class="modal-mask" id="__mm"><div class="modal" id="__md">'+html+'</div></div>';var mask=document.getElementById('__mm');function close(){root.innerHTML='';if(typeof onClose==='function')onClose()}mask.addEventListener('click',function(e){if(e.target===mask)close()});window.__closeModal=close;return close};
 window.showPremiumModal=function(opts){opts=opts||{};track('premium_modal_show',{formulaId:opts.formulaId,feature:opts.feature});var html='<div class="center" style="font-size:3rem">🔒</div><h2 class="center mt-3">这个是 Pro 内容</h2><p class="center t-muted mt-2">解锁全部 78 个公式、计时挑战、弱项强化与详细数据报告。</p><div class="mt-6 flex" style="flex-direction:column;gap:12px"><button class="btn btn-primary" id="__pmGo">查看 Pro 详情</button><button class="btn btn-ghost" id="__pmClose">稍后再说</button></div>';var close=showModal(html,opts.onClose);document.getElementById('__pmClose').addEventListener('click',close);document.getElementById('__pmGo').addEventListener('click',function(){close();navigate('/pricing')})};
 
-/* ===== Boot ===== */
 try{document.getElementById('year').textContent=new Date().getFullYear()}catch(e){}
 try{ensureAchievementsInit()}catch(e){}
 try{Storage.getUser()}catch(e){}
 
 }catch(err){console.error('[core boot]',err)}
 })();
+</script>
+
+<script>
+/* OLL 1-57 */
+try{
+OLL_FORMULAS.push(
+ollEntry(1,'Dot 1','Dot',"(R U2') (R2' F R F') U2' (R' F R F')",3),
+ollEntry(2,'Dot 2','Dot',"F (R U R' U') F' f (R U R' U') f'",3),
+ollEntry(3,'Dot 3','Dot',"f (R U R' U') f' U' F (R U R' U') F'",3),
+ollEntry(4,'Dot 4','Dot',"f (R U R' U') f' U F (R U R' U') F'",3),
+ollEntry(5,'Square 1','Square',"(r' U2 R U R' U r)",2),
+ollEntry(6,'Square 2','Square',"(r U2 R' U' R U' r')",2),
+ollEntry(7,'Lightning 1','Lightning',"(r U R' U R U2 r')",2),
+ollEntry(8,'Lightning 2','Lightning',"(r' U' R U' R' U2 r)",2),
+ollEntry(9,'Fish (Kite) 1','Fish',"(R U R' U') R' F (R2 U R' U') F'",3),
+ollEntry(10,'Fish (Kite) 2','Fish',"(R U R' U) (R' F R F') (R U2 R')",3),
+ollEntry(11,'Lightning 3','Lightning',"r' (R2 U R' U R U2 R') U M'",3),
+ollEntry(12,'Lightning 4','Lightning',"M' (R' U' R U' R' U2 R) U' M",3),
+ollEntry(13,'Knight 1','Knight',"(r U' r') (U' r U r') y' (R' U R)",3),
+ollEntry(14,'Knight 2','Knight',"(R' F R) (U R' F' R) (F U' F')",3),
+ollEntry(15,'Knight 3','Knight',"(r' U' r) (R' U' R U) (r' U r)",3),
+ollEntry(16,'Knight 4','Knight',"(r U r') (R U R' U') (r U' r')",3),
+ollEntry(17,'Awkward 1','Awkward',"(R U R' U) (R' F R F') U2 (R' F R F')",3),
+ollEntry(18,'Awkward 2','Awkward',"F (R U R' U) y' (R' U2) (R' F R F')",3),
+ollEntry(19,'Awkward 3','Awkward',"M U (R U R' U') M' (R' F R F')",3),
+ollEntry(20,'Double Sune','Awkward',"M U (R U R' U') M2 (U R U' r')",3),
+ollEntry(21,'Cross / H','OCLL',"(R U2 R' U' R U R' U' R U' R')",1,["F (R U R' U')3 F'"],'双 Sune 合并'),
+ollEntry(22,'Pi','OCLL',"R U2' R2' U' R2 U' R2' U2' R",1,["f (R U R' U') f' F (R U R' U') F'"]),
+ollEntry(23,'Headlights','OCLL',"R2' D' R U2 R' D R U2 R",1,["R2 D (R' U2 R) D' (R' U2 R')"]),
+ollEntry(24,'Bowtie','OCLL',"(r U R' U') (r' F R F')",1),
+ollEntry(25,'Bowtie 反 / Diagonal','OCLL',"F' (r U R' U') r' F R",1,["x' (R U R' D) (R U' R' D') x"]),
+ollEntry(26,'Anti-Sune','OCLL',"(R U2 R' U' R U' R')",1,["L' U' L U' L' U2 L"],'左前角朝外'),
+ollEntry(27,'Sune','OCLL',"(R U R' U R U2 R')",1,["L' U2 L U L' U L"],'最常用 OLL'),
+ollEntry(28,'Block 1','Block',"(r U R' U') M (U R U' R')",2),
+ollEntry(29,'Block 2','Block',"(R U R' U') (R U' R') (F' U' F) (R U R')",3),
+ollEntry(30,'Block 3','Block',"F R' F (R2 U' R' U') (R U R') F2",3),
+ollEntry(31,'P-shape 1','P-shape',"(R' U' F) (U R U' R') F' R",2),
+ollEntry(32,'P-shape 2','P-shape',"(S R U R' U') (R' F R f')",2),
+ollEntry(33,'T-shape 1','T-shape',"(R U R' U') (R' F R F')",1,[],'熟悉 sexy + sledge 的组合'),
+ollEntry(34,'C-shape 1','C-shape',"(R U R' U') B' (R' F R F') B",2),
+ollEntry(35,'Fish 3','Fish',"(R U2') (R2' F R F') (R U2' R')",2),
+ollEntry(36,'W-shape 1','W-shape',"(R' U' R U' R' U R U) l U' R' U x",3),
+ollEntry(37,'Fish 4 (Mounted)','Fish',"F (R U' R' U') (R U R' F')",2),
+ollEntry(38,'W-shape 2','W-shape',"(R U R' U) (R U' R' U') (R' F R F')",2),
+ollEntry(39,'Big Lightning 1','Lightning',"(L F') (L' U' L U) F U' L'",3),
+ollEntry(40,'Big Lightning 2','Lightning',"(R' F) (R U R' U') F' U R",3),
+ollEntry(41,'Awkward Fish 1','Awkward',"(R U R' U R U2' R') F (R U R' U') F'",3),
+ollEntry(42,'Awkward Fish 2','Awkward',"(R' U' R U' R' U2 R) F (R U R' U') F'",3),
+ollEntry(43,'P-shape 3','P-shape',"f' (L' U' L U) f",2),
+ollEntry(44,'P-shape 4','P-shape',"f (R U R' U') f'",1,[],'镜像 OLL 45'),
+ollEntry(45,'T-shape 2','T-shape',"F (R U R' U') F'",1,[],'万能 OLL 之一'),
+ollEntry(46,'L-shape (Seein\u2019 Headlights)','L-shape',"R' U' (R' F R F') U R",2),
+ollEntry(47,'L-shape 1','L-shape',"F' (L' U' L U) (L' U' L U) F",2),
+ollEntry(48,'L-shape 2','L-shape',"F (R U R' U') (R U R' U') F'",2),
+ollEntry(49,'L-shape 3','L-shape',"R B' R2 F R2 B R2 F' R",3),
+ollEntry(50,'L-shape 4','L-shape',"R' F R2 B' R2' F' R2 B R'",3),
+ollEntry(51,'Line 1','Line',"f (R U R' U') (R U R' U') f'",2),
+ollEntry(52,'Line 2','Line',"(R U R' U) R d' R U' R' F'",2),
+ollEntry(53,'L-shape 5','L-shape',"(r' U' R U' R' U R U' R' U2 r)",3),
+ollEntry(54,'L-shape 6','L-shape',"(r U R' U R U' R' U R U2' r')",3),
+ollEntry(55,'Line 3','Line',"R' F (R U R U' R2' F') R2 U' R' (U R U R')",3),
+ollEntry(56,'Line 4','Line',"(r U r') (U R U' R') (U R U' R') (r U' r')",3),
+ollEntry(57,'H (Edges Only)','OCLL',"(R U R' U') M' (U R U' r')",1,["(R U R' U R U' R') M' (U R U' r')"])
+);
+}catch(e){console.error('[OLL data]',e)}
+</script>
+
+<script>
+/* PLL */
+try{
+PLL_FORMULAS.push(
+pllEntry(1,'Aa','Aa Perm','Corners Only',"x (R' U R') D2 (R U' R') D2 R2 x'",1,["y' x' (R2 D2) (R' U' R) D2 (R' U R')"],'右后顺时针三角换'),
+pllEntry(2,'Ab','Ab Perm','Corners Only',"x R2' D2 (R U R') D2 (R U' R) x'",1,["y2 x (R2 D2 R U R' D2 R U' R)"]),
+pllEntry(3,'E','E Perm','Corners Only',"x' (R U' R' D) (R U R' D') (R U R' D) (R U' R' D') x",3),
+pllEntry(17,'Ua','Ua Perm','Edges Only',"(R U' R U R U) (R U' R' U' R2)",1,["M2 U M U2 M' U M2"],'前棱逆时针三换'),
+pllEntry(18,'Ub','Ub Perm','Edges Only',"R2 U (R U R' U') (R' U' R' U R')",1,["M2 U' M U2 M' U' M2"],'前棱顺时针三换'),
+pllEntry(9,'H','H Perm','Edges Only',"M2 U M2 U2 M2 U M2",1,[],'对面棱对换'),
+pllEntry(21,'Z','Z Perm','Edges Only',"M' U M2 U M2 U M' U2 M2",1,["M2 U M2 U M' U2 M2 U2 M'"],'相邻棱对换'),
+pllEntry(10,'Ja','Ja Perm','Adjacent Swap',"(R' U L' U2) (R U' R' U2 R L)",2,["x R2 F R F' R U2 r' U r U2 x'"]),
+pllEntry(11,'Jb','Jb Perm','Adjacent Swap',"(R U R' F') (R U R' U') R' F R2 U' R'",2),
+pllEntry(16,'T','T Perm','Adjacent Swap',"(R U R' U') (R' F R2 U' R' U') (R U R' F')",1,[],'最常用 PLL'),
+pllEntry(4,'F','F Perm','Adjacent Swap',"(R' U' F') (R U R' U') (R' F R2 U' R' U') (R U R' U R)",3),
+pllEntry(14,'Ra','Ra Perm','Adjacent Swap',"(R U' R' U') (R U R D) (R' U' R D') R' U2 R'",3),
+pllEntry(15,'Rb','Rb Perm','Adjacent Swap',"(R' U2 R U2') R' F (R U R' U') R' F' R2",3),
+pllEntry(5,'Ga','Ga Perm','G Perms',"R2 U (R' U R' U') (R U' R2) D U' (R' U R) D'",3),
+pllEntry(6,'Gb','Gb Perm','G Perms',"(R' U' R) U D' (R2 U R' U) (R U' R U' R2 D)",3),
+pllEntry(7,'Gc','Gc Perm','G Perms',"R2' U' (R U' R U) (R' U R2 D') (U R U' R') D",3),
+pllEntry(8,'Gd','Gd Perm','G Perms',"(R U R') U' D (R2 U' R U') (R' U R' U R2) D'",3),
+pllEntry(12,'Na','Na Perm','Diagonal Swap',"(R U R' U) (R U R' F') (R U R' U') (R' F R2 U' R' U2 R U' R')",3,["z U R' D R2 U' R D' U R' D R2 U' R D' z'"]),
+pllEntry(13,'Nb','Nb Perm','Diagonal Swap',"(R' U R U') (R' F' U' F) (R U R' F) R' F' (R U' R)",3),
+pllEntry(19,'V','V Perm','Diagonal Swap',"(R' U R' U') y (R' F' R2 U') (R' U R' F) R F",3),
+pllEntry(20,'Y','Y Perm','Diagonal Swap',"F R U' R' U' (R U R' F') (R U R' U') (R' F R F')",2)
+);
+}catch(e){console.error('[PLL data]',e)}
 </script>
 
 </body>
