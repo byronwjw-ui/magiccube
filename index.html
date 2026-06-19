@@ -53,7 +53,7 @@ p{margin:0}
 .cube-host.lg{min-height:280px}
 .cube-fallback{padding:12px;text-align:center;color:var(--muted);font-family:ui-monospace,monospace;font-size:.9rem;word-break:break-word}
 twisty-player{max-width:100%}
-.formula-card{position:relative;display:block}
+.formula-card{position:relative;display:block;cursor:pointer}
 .formula-card .corner{position:absolute;top:8px;right:8px;display:flex;align-items:center;gap:4px;z-index:2}
 .tabs{display:inline-flex;background:#fff;border-radius:16px;padding:4px;box-shadow:var(--shadow-card)}
 .tabs button{padding:8px 20px;border-radius:12px;font-size:.95rem;font-weight:600;color:#6b7280;transition:background .15s ease,color .15s ease}
@@ -141,5 +141,152 @@ twisty-player{max-width:100%}
 </div></section>
 </main></div>
 <div class="toast" id="toast"></div><div id="modal-root"></div>
+
+<script>
+/* ========== Hardened core ==========
+   - 全局 try/catch 兜底，错误显示横幅但页面可用
+   - 内部路由变量 _route，不写 location.hash（避免嵌入容器干扰）
+   - data-route="..." 链接点击直接调用 navigate()
+   - localStorage 完全 try/catch + 内存兜底
+==================================== */
+window.addEventListener('error',function(e){
+  try{
+    var er=document.getElementById('err-root');
+    if(er&&!er.firstChild){
+      var d=document.createElement('div');
+      d.className='err-banner';
+      d.textContent='⚠️ 部分功能加载异常，但页面仍可使用。'+(e.message||'');
+      er.appendChild(d);
+      setTimeout(function(){try{d.remove()}catch(_){}},6000);
+    }
+  }catch(_){}
+});
+
+(function(){
+try{
+var MEM={};
+function safeGet(k){try{var v=localStorage.getItem(k);return v}catch(e){return MEM[k]!==undefined?MEM[k]:null}}
+function safeSet(k,v){try{localStorage.setItem(k,v)}catch(e){MEM[k]=v}}
+function safeDel(k){try{localStorage.removeItem(k)}catch(e){delete MEM[k]}}
+window.__store={get:safeGet,set:safeSet,del:safeDel};
+
+var __toastEl=document.getElementById('toast'),__toastTimer;
+window.toast=function(msg){try{__toastEl.textContent=msg;__toastEl.classList.add('show');clearTimeout(__toastTimer);__toastTimer=setTimeout(function(){__toastEl.classList.remove('show')},1800)}catch(e){}};
+
+window.escapeHtml=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+window.invertAlgorithm=function(alg){return String(alg||'').trim().split(/\s+/).filter(Boolean).reverse().map(function(m){if(m.endsWith("'"))return m.slice(0,-1);if(m.endsWith('2'))return m;return m+"'"}).join(' ')};
+window.copyToClipboard=function(text){if(navigator.clipboard&&window.isSecureContext){return navigator.clipboard.writeText(text).then(function(){return true}).catch(function(){return fallbackCopy(text)})}return Promise.resolve(fallbackCopy(text))};
+function fallbackCopy(text){try{var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';ta.setAttribute('readonly','');document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,text.length);var ok=document.execCommand('copy');document.body.removeChild(ta);return ok}catch(e){return false}}
+window.uuid=function(){try{if(window.crypto&&crypto.randomUUID)return crypto.randomUUID()}catch(e){}return 'anon-'+Date.now()+'-'+Math.random().toString(36).slice(2)};
+window.todayStr=function(){return new Date().toISOString().slice(0,10)};
+
+/* ===== Internal route (不依赖 location.hash) ===== */
+var _route='/';
+window.getRoute=function(){return _route};
+window.navigate=function(path){_route=path||'/';try{window.scrollTo(0,0)}catch(e){}router()};
+window.showView=function(id){try{var views=document.querySelectorAll('.view');for(var i=0;i<views.length;i++)views[i].classList.toggle('active',views[i].id===id)}catch(e){}};
+window.setActiveNav=function(path){try{var anchors=document.querySelectorAll('#nav a');for(var i=0;i<anchors.length;i++){var m=anchors[i].getAttribute('data-match');var active=(m==='/')?(path==='/'):(path.indexOf(m)===0);anchors[i].classList.toggle('active',active)}}catch(e){}};
+
+window.router=function(){
+  try{
+    var path=_route||'/';
+    setActiveNav(path);
+    if(path==='/'){showView('view-home');return}
+    if(path==='/learn'){showView('view-learn');if(window.renderLearn)try{renderLearn()}catch(e){console.error(e)}return}
+    var m=path.match(/^\/learn\/(OLL|PLL)\/([\w-]+)$/);
+    if(m){showView('view-detail');if(window.renderDetail)try{renderDetail(m[2])}catch(e){console.error(e)}return}
+    if(path==='/practice'){showView('view-practice');if(window.renderPractice)try{renderPractice()}catch(e){console.error(e)}return}
+    if(path==='/dashboard'){showView('view-dashboard');if(window.renderDashboard)try{renderDashboard()}catch(e){console.error(e)}return}
+    if(path==='/pricing'){showView('view-pricing');if(window.renderPricing)try{renderPricing()}catch(e){console.error(e)}return}
+    showView('view-404');
+  }catch(e){console.error('[router]',e);showView('view-home')}
+};
+
+/* ===== 全局事件代理：data-route 点击 ===== */
+document.addEventListener('click',function(e){
+  try{
+    var t=e.target;
+    while(t&&t!==document.body){
+      if(t.getAttribute&&t.hasAttribute('data-route')){
+        e.preventDefault();
+        navigate(t.getAttribute('data-route'));
+        return;
+      }
+      t=t.parentNode;
+    }
+  }catch(err){console.error(err)}
+},true);
+
+/* ===== Storage（带兜底）===== */
+function _read(k,fb){try{var raw=__store.get(k);return raw===null||raw===undefined?fb:JSON.parse(raw)}catch(e){return fb}}
+function _write(k,v){try{__store.set(k,JSON.stringify(v))}catch(e){}}
+var KEYS={user:'mc_user',anonUid:'mc_anon_uid',progress:'mc_progress',sessions:'mc_sessions',achievements:'mc_achievements'};
+window.KEYS=KEYS;
+var AVATAR_POOL=['🦊','🐼','🐯','🐰','🐸','🐵','🐨','🦁'];
+window.Storage={
+getAnonUid:function(){var uid=__store.get(KEYS.anonUid);if(!uid){uid=uuid();__store.set(KEYS.anonUid,uid)}return uid},
+getUser:function(){var u=_read(KEYS.user,null);if(u)return u;var avatar=AVATAR_POOL[Math.floor(Math.random()*AVATAR_POOL.length)];u={id:Storage.getAnonUid(),nickname:'小魔方手',avatar:avatar,isPremium:false,createdAt:Date.now()};_write(KEYS.user,u);return u},
+updateUser:function(patch){var u=Storage.getUser();var n=Object.assign({},u,patch);_write(KEYS.user,n);return n},
+getAvatarPool:function(){return AVATAR_POOL.slice()},
+getAllProgress:function(){return _read(KEYS.progress,{})},
+getProgress:function(fid){return Storage.getAllProgress()[fid]},
+upsertProgress:function(fid,patch){var all=Storage.getAllProgress();var prev=all[fid]||{formulaId:fid,status:'new',practiceCount:0,lastPracticedAt:0,successRate:0};var next=Object.assign({},prev,patch,{formulaId:fid});all[fid]=next;_write(KEYS.progress,all);return next},
+recordPractice:function(fid,success){var prev=Storage.getProgress(fid)||{formulaId:fid,status:'new',practiceCount:0,lastPracticedAt:0,successRate:0};var nextCount=prev.practiceCount+1;var prevSucc=Math.round(prev.successRate*prev.practiceCount);var nextSucc=prevSucc+(success?1:0);var rate=nextCount>0?nextSucc/nextCount:0;var status=prev.status==='new'?'learning':prev.status;if(nextCount>=3&&rate>=0.8)status='mastered';return Storage.upsertProgress(fid,{practiceCount:nextCount,lastPracticedAt:Date.now(),successRate:rate,status:status})},
+markMastered:function(fid){return Storage.upsertProgress(fid,{status:'mastered',lastPracticedAt:Date.now()})},
+markLearning:function(fid){return Storage.upsertProgress(fid,{status:'learning'})},
+getSessions:function(){return _read(KEYS.sessions,[])},
+addSession:function(s){var all=Storage.getSessions();all.push(s);_write(KEYS.sessions,all.slice(-200))},
+getDailyCounts:function(days){var map={},now=new Date(),order=[];for(var i=days-1;i>=0;i--){var d=new Date(now);d.setDate(now.getDate()-i);var key=d.toISOString().slice(0,10);map[key]=0;order.push(key)}var sess=Storage.getSessions();for(var j=0;j<sess.length;j++){if(map.hasOwnProperty(sess[j].date))map[sess[j].date]+=sess[j].total}return order.map(function(k){return{date:k,count:map[k]}})},
+getStreak:function(){var sessions=Storage.getSessions();if(sessions.length===0)return 0;var set={};for(var i=0;i<sessions.length;i++)set[sessions[i].date]=true;var streak=0,cur=new Date();if(!set[cur.toISOString().slice(0,10)])cur.setDate(cur.getDate()-1);while(set[cur.toISOString().slice(0,10)]){streak++;cur.setDate(cur.getDate()-1)}return streak},
+getAchievements:function(){return _read(KEYS.achievements,[])},
+setAchievements:function(list){_write(KEYS.achievements,list)},
+unlockAchievement:function(id){var all=Storage.getAchievements();for(var i=0;i<all.length;i++){if(all[i].id===id&&!all[i].unlocked){all[i]=Object.assign({},all[i],{unlocked:true,unlockedAt:Date.now()});_write(KEYS.achievements,all);return}}},
+resetAll:function(){try{for(var k in KEYS)__store.del(KEYS[k])}catch(e){}}
+};
+
+window.ACHIEVEMENT_DEFS=[
+{id:'first_practice',name:'初试身手',description:'完成第 1 次练习',emoji:'🥉'},
+{id:'practice_10',name:'勤奋学习',description:'累计练习 10 题',emoji:'📚'},
+{id:'practice_50',name:'熟能生巧',description:'累计练习 50 题',emoji:'🎯'},
+{id:'mastered_10',name:'十公式小手',description:'掌握 10 个公式',emoji:'⭐'},
+{id:'mastered_oll',name:'OLL 全掌握',description:'掌握全部 57 个 OLL',emoji:'🏆'},
+{id:'mastered_pll',name:'PLL 全掌握',description:'掌握全部 21 个 PLL',emoji:'👑'},
+{id:'streak_7',name:'一周坚持',description:'连续 7 天练习',emoji:'🔥'},
+{id:'streak_30',name:'一月不断',description:'连续 30 天练习',emoji:'🚀'}
+];
+window.ensureAchievementsInit=function(){var existing=Storage.getAchievements();if(existing.length===0){var seed=ACHIEVEMENT_DEFS.map(function(d){return Object.assign({},d,{unlocked:false})});Storage.setAchievements(seed);return seed}var byId={};for(var i=0;i<existing.length;i++)byId[existing[i].id]=existing[i];var merged=ACHIEVEMENT_DEFS.map(function(d){return byId[d.id]||Object.assign({},d,{unlocked:false})});Storage.setAchievements(merged);return merged};
+window.checkAndUnlock=function(){try{ensureAchievementsInit();var sessions=Storage.getSessions();var totalPractice=sessions.reduce(function(s,x){return s+x.total},0);var allP=Storage.getAllProgress(),progress=[];for(var k in allP)progress.push(allP[k]);var mastered=progress.filter(function(p){return p.status==='mastered'});var masteredOll=mastered.filter(function(p){return p.formulaId.indexOf('oll-')===0}).length;var masteredPll=mastered.filter(function(p){return p.formulaId.indexOf('pll-')===0}).length;var streak=Storage.getStreak();var checks=[['first_practice',sessions.length>=1],['practice_10',totalPractice>=10],['practice_50',totalPractice>=50],['mastered_10',mastered.length>=10],['mastered_oll',masteredOll>=57],['mastered_pll',masteredPll>=21],['streak_7',streak>=7],['streak_30',streak>=30]];var unlockedNow=[];for(var i=0;i<checks.length;i++){var id=checks[i][0],ok=checks[i][1];if(ok){var all=Storage.getAchievements();for(var j=0;j<all.length;j++){if(all[j].id===id&&!all[j].unlocked){Storage.unlockAchievement(id);unlockedNow.push(id);break}}}}return unlockedNow}catch(e){return[]}};
+window.track=function(event,props){try{console.log('[analytics]',Object.assign({event:event,ts:Date.now()},props||{}))}catch(e){}};
+
+/* ===== Formulas registry ===== */
+window.FREE_OLL_NUMBERS={27:1,26:1,21:1,22:1,23:1,24:1,25:1,44:1,45:1,33:1};
+window.FREE_PLL_CODES={Ua:1,Ub:1,H:1,Z:1,Aa:1};
+window.ollEntry=function(number,name,sub,alg,diff,alts,tip){return{id:'oll-'+number,category:'OLL',subCategory:sub,number:number,name:name,algorithm:alg,alternativeAlgorithms:alts||[],setupMoves:invertAlgorithm(alg),difficulty:diff,isPremium:!FREE_OLL_NUMBERS[number],tip:tip||''}};
+window.pllEntry=function(number,code,name,sub,alg,diff,alts,tip){return{id:'pll-'+code.toLowerCase(),category:'PLL',subCategory:sub,number:number,name:name,algorithm:alg,alternativeAlgorithms:alts||[],setupMoves:invertAlgorithm(alg),difficulty:diff,isPremium:!FREE_PLL_CODES[code],tip:tip||''}};
+window.OLL_FORMULAS=[];window.PLL_FORMULAS=[];window.ALL_FORMULAS=[];
+window.buildFormulaIndex=function(){ALL_FORMULAS=OLL_FORMULAS.concat(PLL_FORMULAS)};
+window.getFormulaById=function(id){for(var i=0;i<ALL_FORMULAS.length;i++)if(ALL_FORMULAS[i].id===id)return ALL_FORMULAS[i]};
+window.getFormulasByCategory=function(cat){return ALL_FORMULAS.filter(function(f){return f.category===cat})};
+window.getSubCategories=function(cat){var seen={},out=[];for(var i=0;i<ALL_FORMULAS.length;i++){var f=ALL_FORMULAS[i];if(f.category===cat&&!seen[f.subCategory]){seen[f.subCategory]=true;out.push(f.subCategory)}}return out};
+window.getAdjacentFormulas=function(id){var f=getFormulaById(id);if(!f)return{};var list=getFormulasByCategory(f.category).slice().sort(function(a,b){return a.number-b.number});var idx=-1;for(var i=0;i<list.length;i++)if(list[i].id===id){idx=i;break}return{prev:idx>0?list[idx-1]:null,next:(idx>=0&&idx<list.length-1)?list[idx+1]:null}};
+
+/* ===== cubing.js lazy loader (graceful fallback) ===== */
+var CUBING_STATE={loaded:false,loading:false,failed:false,queue:[]};
+window.loadCubing=function(){if(CUBING_STATE.loaded||CUBING_STATE.failed)return Promise.resolve(CUBING_STATE.loaded);if(CUBING_STATE.loading)return new Promise(function(res){CUBING_STATE.queue.push(res)});CUBING_STATE.loading=true;return new Promise(function(resolve){try{var s=document.createElement('script');s.type='module';s.textContent="import('https://cdn.jsdelivr.net/npm/cubing@0.55.0/twisty.js').then(function(){window.__cubingReady&&window.__cubingReady(true);}).catch(function(){window.__cubingReady&&window.__cubingReady(false);});";window.__cubingReady=function(ok){CUBING_STATE.loaded=!!ok;CUBING_STATE.failed=!ok;CUBING_STATE.loading=false;resolve(ok);CUBING_STATE.queue.forEach(function(r){r(ok)});CUBING_STATE.queue=[]};setTimeout(function(){if(CUBING_STATE.loading&&window.__cubingReady)window.__cubingReady(false)},8000);document.head.appendChild(s)}catch(e){CUBING_STATE.failed=true;CUBING_STATE.loading=false;resolve(false)}})};
+window.mountCube=function(host,opts){if(!host)return;opts=opts||{};var size=opts.size||240;host.innerHTML='';host.style.minHeight=Math.min(size,280)+'px';function renderFallback(){var el=document.createElement('div');el.className='cube-fallback';el.innerHTML='<div style="font-size:2rem">🧊</div><div style="margin-top:6px">'+escapeHtml(opts.alg||'—')+'</div>';host.appendChild(el)}if(CUBING_STATE.failed){renderFallback();return}var ph=document.createElement('div');ph.className='cube-fallback';ph.textContent='魔方加载中…';host.appendChild(ph);loadCubing().then(function(ok){if(!ok){host.innerHTML='';renderFallback();return}try{host.innerHTML='';var p=document.createElement('twisty-player');p.setAttribute('puzzle','3x3x3');p.setAttribute('visualization',opts.visualization||'3D');p.setAttribute('background',opts.background||'none');p.setAttribute('control-panel',opts.controlPanel||'bottom-row');p.setAttribute('hint-facelets',opts.hintFacelets||'floating');p.setAttribute('back-view',opts.backView||'none');p.setAttribute('tempo-scale',String(opts.tempoScale||1));if(opts.alg)p.setAttribute('alg',opts.alg);if(opts.setupAlg)p.setAttribute('experimental-setup-alg',opts.setupAlg);p.style.width=size+'px';p.style.height=size+'px';p.style.maxWidth='100%';host.appendChild(p)}catch(e){host.innerHTML='';renderFallback()}})};
+
+/* ===== Modal ===== */
+window.showModal=function(html,onClose){var root=document.getElementById('modal-root');root.innerHTML='<div class="modal-mask" id="__mm"><div class="modal" id="__md">'+html+'</div></div>';var mask=document.getElementById('__mm');function close(){root.innerHTML='';if(typeof onClose==='function')onClose()}mask.addEventListener('click',function(e){if(e.target===mask)close()});window.__closeModal=close;return close};
+window.showPremiumModal=function(opts){opts=opts||{};track('premium_modal_show',{formulaId:opts.formulaId,feature:opts.feature});var html='<div class="center" style="font-size:3rem">🔒</div><h2 class="center mt-3">这个是 Pro 内容</h2><p class="center t-muted mt-2">解锁全部 78 个公式、计时挑战、弱项强化与详细数据报告。</p><div class="mt-6 flex" style="flex-direction:column;gap:12px"><button class="btn btn-primary" id="__pmGo">查看 Pro 详情</button><button class="btn btn-ghost" id="__pmClose">稍后再说</button></div>';var close=showModal(html,opts.onClose);document.getElementById('__pmClose').addEventListener('click',close);document.getElementById('__pmGo').addEventListener('click',function(){close();navigate('/pricing')})};
+
+/* ===== Boot ===== */
+try{document.getElementById('year').textContent=new Date().getFullYear()}catch(e){}
+try{ensureAchievementsInit()}catch(e){}
+try{Storage.getUser()}catch(e){}
+
+}catch(err){console.error('[core boot]',err)}
+})();
+</script>
+
 </body>
 </html>
